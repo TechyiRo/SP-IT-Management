@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, UserCheck, CheckSquare, Package, Building2, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, CheckSquare, Package, Building2, FileText, LogOut, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
 
 const AdminLayout = () => {
     const { logout, user } = useAuth();
     const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const menuItems = [
         { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
@@ -19,15 +21,30 @@ const AdminLayout = () => {
 
     return (
         <div className="flex h-screen overflow-hidden">
+            {/* Mobile Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-64 glass-card m-4 mr-0 rounded-2xl flex flex-col relative z-20">
-                <div className="p-6 border-b border-white/10">
+            <aside className={clsx(
+                "fixed md:relative inset-y-0 left-0 z-50 w-64 glass-card m-0 md:m-4 md:mr-0 rounded-none md:rounded-2xl flex flex-col transition-transform duration-300 ease-in-out",
+                isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            )}>
+                <div className="p-6 border-b border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-3">
-                            <img src="/logo.png" alt="SP IT Logo" className="w-10 h-10 object-contain" />
-                            <span className="font-bold text-lg tracking-wide">SP IT</span>
-                        </div>
+                        <img src="/logo.png" alt="SP IT Logo" className="w-10 h-10 object-contain" />
+                        <span className="font-bold text-lg tracking-wide">SP IT</span>
                     </div>
+                    <button
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="md:hidden text-gray-400 hover:text-white transition-colors"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
                 </div>
 
                 <nav className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -38,6 +55,7 @@ const AdminLayout = () => {
                             <Link
                                 key={item.path}
                                 to={item.path}
+                                onClick={() => setIsSidebarOpen(false)} // Close on navigation
                                 className={clsx(
                                     "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group",
                                     isActive ? "bg-primary/20 text-white shadow-lg border border-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
@@ -73,8 +91,22 @@ const AdminLayout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
-                <div className="glass-card min-h-full p-6 relative z-10 animate-fade-in-up">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative flex flex-col w-full">
+                {/* Mobile Header */}
+                <div className="md:hidden mb-4 flex items-center justify-between glass-card p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                        <img src="/logo.png" alt="SP IT Logo" className="w-8 h-8 object-contain" />
+                        <span className="font-bold text-lg tracking-wide">SP IT</span>
+                    </div>
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                    >
+                        <Menu className="w-6 h-6 text-white" />
+                    </button>
+                </div>
+
+                <div className="glass-card min-h-[calc(100vh-8rem)] md:min-h-full p-6 relative z-10 animate-fade-in-up">
                     <Outlet />
                 </div>
             </main>
