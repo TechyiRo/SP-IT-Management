@@ -277,4 +277,27 @@ router.post('/:id/updates', [auth, upload.array('attachments', 3)], async (req, 
     }
 });
 
+// @route   DELETE api/tasks/:id
+// @desc    Delete a task
+// @access  Private (Admin only)
+router.delete('/:id', auth, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ msg: 'Access denied' });
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) return res.status(404).json({ msg: 'Task not found' });
+
+        await task.deleteOne();
+
+        // Also remove related notifications?
+        // await Notification.deleteMany({ relatedId: req.params.id, onModel: 'Task' });
+        // Optional but good for cleanup. Let's keep it simple for now or include it.
+        await Notification.deleteMany({ relatedId: req.params.id, onModel: 'Task' });
+
+        res.json({ msg: 'Task removed' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

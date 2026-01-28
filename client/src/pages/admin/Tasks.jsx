@@ -18,6 +18,8 @@ const Tasks = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'board'
 
+    const [editingTask, setEditingTask] = useState(null);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -75,6 +77,37 @@ const Tasks = () => {
         }
     };
 
+    const openEditModal = (task, e) => {
+        e.stopPropagation();
+        setEditingTask(task);
+        setIsModalOpen(true);
+    };
+
+    const handleTaskUpdate = async (id, updatedData) => {
+        try {
+            await api.put(`/api/tasks/${id}`, updatedData);
+            setIsModalOpen(false);
+            setEditingTask(null);
+            fetchData();
+        } catch (err) {
+            console.error('Error updating task:', err);
+            alert('Error updating task');
+        }
+    };
+
+    const handleDelete = async (id, e) => {
+        e.stopPropagation();
+        if (window.confirm('Are you sure you want to delete this task?')) {
+            try {
+                await api.delete(`/api/tasks/${id}`);
+                setTasks(tasks.filter(t => t._id !== id));
+            } catch (err) {
+                console.error('Error deleting task:', err);
+                alert('Error deleting task');
+            }
+        }
+    };
+
     const filteredTasks = Array.isArray(tasks) ? tasks.filter(task =>
         task && task.title && typeof task.title === 'string' &&
         task.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -91,13 +124,14 @@ const Tasks = () => {
                         <th className="p-4">Priority</th>
                         <th className="p-4">Status</th>
                         <th className="p-4">Progress</th>
+                        <th className="p-4 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                     {loading ? (
-                        <tr><td colSpan="6" className="p-4 text-center">Loading...</td></tr>
+                        <tr><td colSpan="7" className="p-4 text-center">Loading...</td></tr>
                     ) : filteredTasks.length === 0 ? (
-                        <tr><td colSpan="6" className="p-4 text-center text-gray-500">No tasks found</td></tr>
+                        <tr><td colSpan="7" className="p-4 text-center text-gray-500">No tasks found</td></tr>
                     ) : (
                         filteredTasks.map(task => (
                             <tr key={task._id}
@@ -144,6 +178,24 @@ const Tasks = () => {
                                         <div className="bg-cyan-500 h-1.5 rounded-full" style={{ width: `${task.progress || 0}%` }}></div>
                                     </div>
                                 </td>
+                                <td className="p-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button
+                                            onClick={(e) => openEditModal(task, e)}
+                                            className="p-1.5 hover:bg-white/10 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
+                                            title="Edit Task"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDelete(task._id, e)}
+                                            className="p-1.5 hover:bg-white/10 rounded-lg text-red-400 hover:text-red-300 transition-colors"
+                                            title="Delete Task"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         ))
                     )}
@@ -188,7 +240,10 @@ const Tasks = () => {
                         </button>
                     </div>
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => {
+                            setEditingTask(null);
+                            setIsModalOpen(true);
+                        }}
                         className="glass-button flex items-center gap-2"
                     >
                         <Plus className="w-5 h-5" />
@@ -214,11 +269,16 @@ const Tasks = () => {
 
             <CreateTaskModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingTask(null);
+                }}
                 onTaskCreate={handleTaskCreate}
+                onTaskUpdate={handleTaskUpdate}
                 users={users}
                 companies={companies}
                 products={products}
+                taskToEdit={editingTask}
             />
         </div>
     );

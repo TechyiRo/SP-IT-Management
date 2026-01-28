@@ -5,7 +5,9 @@ import { X, Calendar, Flag, Tag, Layers, Briefcase, User, CheckSquare, Paperclip
 // import ReactQuill from 'react-quill'; // REMOVED: Incompatible with React 19
 // import 'react-quill/dist/quill.snow.css'; // Import styles
 
-export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, users = [], companies = [], products = [] }) {
+export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskUpdate, users = [], companies = [], products = [], taskToEdit = null }) {
+    const isEditMode = !!taskToEdit;
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -22,25 +24,44 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, users =
     const [reqInput, setReqInput] = useState('');
     const [attachments, setAttachments] = useState([]);
 
-    // Reset form when modal opens
+    // Reset or Populate form when modal opens
     useEffect(() => {
         if (isOpen) {
-            setFormData({
-                title: '',
-                description: '',
-                priority: 'Medium',
-                category: 'Development',
-                deadline: '',
-                assignedTo: [],
-                company: '',
-                product: '',
-                adminNotes: '',
-                requirements: []
-            });
+            if (taskToEdit) {
+                // Populate for Edit
+                setFormData({
+                    title: taskToEdit.title || '',
+                    description: taskToEdit.description || '',
+                    priority: taskToEdit.priority || 'Medium',
+                    category: taskToEdit.category || 'Development',
+                    deadline: taskToEdit.deadline ? new Date(taskToEdit.deadline).toISOString().split('T')[0] : '',
+                    assignedTo: taskToEdit.assignedTo ? taskToEdit.assignedTo.map(u => typeof u === 'object' ? u._id : u) : [],
+                    company: taskToEdit.company ? (typeof taskToEdit.company === 'object' ? taskToEdit.company._id : taskToEdit.company) : '',
+                    product: taskToEdit.products && taskToEdit.products.length > 0
+                        ? (typeof taskToEdit.products[0] === 'object' ? taskToEdit.products[0]._id : taskToEdit.products[0])
+                        : '',
+                    adminNotes: taskToEdit.adminNotes || '',
+                    requirements: taskToEdit.taskRequirements ? taskToEdit.taskRequirements.map(r => ({ text: r.text, completed: r.completed })) : []
+                });
+            } else {
+                // Reset for Create
+                setFormData({
+                    title: '',
+                    description: '',
+                    priority: 'Medium',
+                    category: 'Development',
+                    deadline: '',
+                    assignedTo: [],
+                    company: '',
+                    product: '',
+                    adminNotes: '',
+                    requirements: []
+                });
+            }
             setReqInput('');
             setAttachments([]);
         }
-    }, [isOpen]);
+    }, [isOpen, taskToEdit]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -100,7 +121,11 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, users =
         // If company is null, remove it entirely to be safe (optional, but cleaner)
         if (!payload.company) delete payload.company;
 
-        onTaskCreate(payload);
+        if (isEditMode) {
+            onTaskUpdate(taskToEdit._id, payload);
+        } else {
+            onTaskCreate(payload);
+        }
     };
 
     return (
@@ -121,7 +146,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, users =
                         {/* Header */}
                         <div className="flex justify-between items-center p-6 border-b border-white/10 bg-white/5">
                             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                                <Layers className="text-indigo-400" /> Create New Task
+                                <Layers className="text-indigo-400" /> {isEditMode ? 'Edit Task' : 'Create New Task'}
                             </h2>
                             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                                 <X size={24} />
@@ -345,7 +370,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, users =
                                     Cancel
                                 </button>
                                 <button onClick={handleSubmit} className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all flex-1 md:flex-none text-center flex items-center justify-center gap-2">
-                                    <Layers size={18} /> Create Task
+                                    <Layers size={18} /> {isEditMode ? 'Update Task' : 'Create Task'}
                                 </button>
                             </div>
                         </div>

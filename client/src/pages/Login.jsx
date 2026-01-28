@@ -99,9 +99,7 @@ const Login = () => {
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm text-gray-500">
-                    <p>Demo Admin: admin / admin123</p>
-                </div>
+
             </div>
         </div>
     );
