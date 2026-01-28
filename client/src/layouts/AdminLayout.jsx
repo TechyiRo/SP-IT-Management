@@ -23,10 +23,10 @@ const AdminLayout = () => {
             <aside className="w-64 glass-card m-4 mr-0 rounded-2xl flex flex-col relative z-20">
                 <div className="p-6 border-b border-white/10">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg font-bold text-xl">
-                            SP
+                        <div className="flex items-center gap-3">
+                            <img src="/logo.png" alt="SP IT Logo" className="w-10 h-10 object-contain" />
+                            <span className="font-bold text-lg tracking-wide">SP IT</span>
                         </div>
-                        <span className="font-bold text-lg tracking-wide">IT Manager</span>
                     </div>
                 </div>
 

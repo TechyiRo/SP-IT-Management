@@ -22,10 +22,8 @@ const EmployeeLayout = () => {
             <aside className="hidden md:flex flex-col w-64 glass-card m-4 mr-0 rounded-2xl sticky top-4 h-[calc(100vh-2rem)]">
                 <div className="p-6 border-b border-white/10">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg font-bold text-xl text-white">
-                            SP
-                        </div>
-                        <span className="font-bold text-lg tracking-wide text-white">Employee</span>
+                        <img src="/logo.png" alt="SP IT Logo" className="w-10 h-10 object-contain" />
+                        <span className="font-bold text-lg tracking-wide text-white">SP IT</span>
                     </div>
                 </div>
 
