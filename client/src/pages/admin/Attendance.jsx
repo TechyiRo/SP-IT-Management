@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api, { BASE_URL } from '../../api/axios';
 import { Calendar, Search, MapPin, Clock, UserCheck, FileText, CheckCircle, XCircle, AlertCircle, Edit, Briefcase, LogOut, Sun, Umbrella } from 'lucide-react';
 
 const Attendance = () => {
@@ -24,7 +24,7 @@ const Attendance = () => {
 
     const fetchAttendance = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/attendance');
+            const res = await api.get('/api/attendance');
             setAttendance(res.data);
             processPendingRequests(res.data);
             setLoading(false);
@@ -47,7 +47,7 @@ const Attendance = () => {
 
     const handleAction = async (id, action, remarks = '') => {
         try {
-            await axios.put(`http://localhost:5000/api/attendance/${id}/action`, { action, remarks });
+            await api.put(`/api/attendance/${id}/action`, { action, remarks });
             fetchAttendance();
         } catch (err) {
             alert('Action Failed');
@@ -73,7 +73,7 @@ const Attendance = () => {
             const checkInDate = editForm.checkInTime ? new Date(`${baseDate} ${editForm.checkInTime}`) : null;
             const checkOutDate = editForm.checkOutTime ? new Date(`${baseDate} ${editForm.checkOutTime}`) : null;
 
-            await axios.put(`http://localhost:5000/api/attendance/${editingRecord._id}`, {
+            await api.put(`/api/attendance/${editingRecord._id}`, {
                 status: editForm.status,
                 checkInTime: checkInDate,
                 checkOutTime: checkOutDate,
@@ -92,7 +92,7 @@ const Attendance = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this attendance record? This action cannot be undone.')) return;
         try {
-            await axios.delete(`http://localhost:5000/api/attendance/${id}`);
+            await api.delete(`/api/attendance/${id}`);
             alert('Record Deleted 🗑️');
             fetchAttendance();
         } catch (err) {
@@ -209,14 +209,14 @@ const Attendance = () => {
                                             <div className="text-sm">
                                                 <div className="flex items-center gap-2 text-gray-300 mb-1"><Sun size={14} className="text-purple-400" /> {req.halfDay.type}</div>
                                                 <p className="text-xs text-gray-300 mt-2 bg-white/5 p-2 rounded">"{req.halfDay.reason}"</p>
-                                                {req.halfDay.attachment && <a href={`http://localhost:5000/${req.halfDay.attachment}`} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 inline-flex items-center gap-1"><FileText size={12} /> Attachment</a>}
+                                                {req.halfDay.attachment && <a href={`${BASE_URL}/${req.halfDay.attachment}`} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 inline-flex items-center gap-1"><FileText size={12} /> Attachment</a>}
                                             </div>
                                         )}
                                         {req.type === 'leave' && (
                                             <div className="text-sm">
                                                 <div className="flex items-center gap-2 text-gray-300 mb-1"><Umbrella size={14} className="text-red-400" /> Full Day Leave</div>
                                                 <p className="text-xs text-gray-300 mt-2 bg-white/5 p-2 rounded">"{req.leave.reason}"</p>
-                                                {req.leave.attachment && <a href={`http://localhost:5000/${req.leave.attachment}`} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 inline-flex items-center gap-1"><FileText size={12} /> Attachment</a>}
+                                                {req.leave.attachment && <a href={`${BASE_URL}/${req.leave.attachment}`} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 inline-flex items-center gap-1"><FileText size={12} /> Attachment</a>}
                                             </div>
                                         )}
                                     </div>

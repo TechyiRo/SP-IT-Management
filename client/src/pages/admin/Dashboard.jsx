@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Users, UserCheck, CheckSquare, AlertCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -20,7 +20,7 @@ const AdminDashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/dashboard/stats');
+            const res = await api.get('/api/dashboard/stats');
             setStats(res.data);
             setLoading(false);
         } catch (err) {
@@ -135,8 +135,8 @@ const AdminDashboard = () => {
                                 <div key={task._id} className="flex gap-4">
                                     <div className="flex-none pt-1">
                                         <div className={`w-2 h-2 rounded-full ring-4 ring-opacity-20 ${task.status === 'Completed' ? 'bg-emerald-500 ring-emerald-500' :
-                                                task.status === 'In Progress' ? 'bg-blue-500 ring-blue-500' :
-                                                    'bg-yellow-500 ring-yellow-500'
+                                            task.status === 'In Progress' ? 'bg-blue-500 ring-blue-500' :
+                                                'bg-yellow-500 ring-yellow-500'
                                             }`}></div>
                                     </div>
                                     <div>

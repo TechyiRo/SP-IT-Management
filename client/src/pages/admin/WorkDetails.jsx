@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { FileText, Search, User } from 'lucide-react';
 
 const WorkDetails = () => {
@@ -12,7 +12,7 @@ const WorkDetails = () => {
 
     const fetchLogs = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/work');
+            const res = await api.get('/api/work');
             setLogs(res.data);
         } catch (err) {
             console.error(err);

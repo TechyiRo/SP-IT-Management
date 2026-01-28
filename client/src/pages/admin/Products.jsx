@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Package, Search } from 'lucide-react';
 
 const Products = () => {
@@ -12,7 +12,7 @@ const Products = () => {
 
     const fetchProducts = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/resources/products');
+            const res = await api.get('/api/resources/products');
             setProducts(res.data);
         } catch (err) {
             console.error(err);

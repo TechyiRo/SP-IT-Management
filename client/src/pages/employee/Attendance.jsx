@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Clock, MapPin, CheckCircle, XCircle, AlertCircle, FileText, Upload, Calendar } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -29,7 +29,7 @@ const EmployeeAttendance = () => {
 
     const fetchAttendanceData = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/attendance/me');
+            const res = await api.get('/api/attendance/me');
             setHistory(res.data);
 
             const today = new Date().toDateString();
@@ -46,7 +46,7 @@ const EmployeeAttendance = () => {
         try {
             // Optional: Get Location
             const location = "Office (Auto)"; // Placeholder for actual Geo logic
-            await axios.post('http://localhost:5000/api/attendance/check-in', { location, remarks: 'Regular Check-in' });
+            await api.post('/api/attendance/check-in', { location, remarks: 'Regular Check-in' });
             alert('Check-In Request Sent! 🟢');
             fetchAttendanceData();
         } catch (err) {
@@ -56,7 +56,7 @@ const EmployeeAttendance = () => {
 
     const handleCheckOutRequest = async () => {
         try {
-            await axios.post('http://localhost:5000/api/attendance/check-out', { remarks: 'Regular Check-out' });
+            await api.post('/api/attendance/check-out', { remarks: 'Regular Check-out' });
             alert('Check-Out Request Sent! 🔴');
             fetchAttendanceData();
         } catch (err) {
@@ -72,7 +72,7 @@ const EmployeeAttendance = () => {
             formData.append('type', halfDayType);
             if (file) formData.append('attachment', file);
 
-            await axios.post('http://localhost:5000/api/attendance/half-day', formData);
+            await api.post('/api/attendance/half-day', formData);
             alert('Half-Day Request Sent! 🌓');
             setShowHalfDayForm(false);
             fetchAttendanceData();
@@ -90,7 +90,7 @@ const EmployeeAttendance = () => {
             formData.append('reason', leaveReason);
             if (leaveFile) formData.append('attachment', leaveFile);
 
-            await axios.post('http://localhost:5000/api/attendance/leave', formData);
+            await api.post('/api/attendance/leave', formData);
             alert('Leave Request Sent! 🏖️');
             setShowLeaveForm(false);
             fetchAttendanceData();

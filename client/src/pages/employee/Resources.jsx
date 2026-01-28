@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Package, Building2, Plus, Search } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 
@@ -20,9 +20,9 @@ const EmployeeResources = () => {
 
     const fetchResources = async () => {
         try {
-            const prodRes = await axios.get('http://localhost:5000/api/resources/products');
+            const prodRes = await api.get('/api/resources/products');
             setProducts(prodRes.data);
-            const compRes = await axios.get('http://localhost:5000/api/resources/companies');
+            const compRes = await api.get('/api/resources/companies');
             setCompanies(compRes.data);
         } catch (err) {
             console.error(err);
@@ -32,7 +32,7 @@ const EmployeeResources = () => {
     const handleAddProduct = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/resources/products', productForm);
+            await api.post('/api/resources/products', productForm);
             setIsProductModalOpen(false);
             fetchResources();
             setProductForm({ name: '', serialNumber: '', type: 'Laptop' });
@@ -44,7 +44,7 @@ const EmployeeResources = () => {
     const handleAddCompany = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/resources/companies', companyForm);
+            await api.post('/api/resources/companies', companyForm);
             setIsCompanyModalOpen(false);
             fetchResources();
             setCompanyForm({ name: '', address: '', type: 'Client' });
@@ -57,8 +57,8 @@ const EmployeeResources = () => {
         <button
             onClick={() => setActiveTab(id)}
             className={`flex items-center gap-2 px-6 py-3 rounded-t-xl transition-all ${activeTab === id
-                    ? 'bg-white/10 text-cyan-400 border-b-2 border-cyan-400'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'bg-white/10 text-cyan-400 border-b-2 border-cyan-400'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
         >
             <Icon className="w-4 h-4" />

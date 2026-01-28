@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Send, FileText } from 'lucide-react';
 
 const EmployeeWorkLog = () => {
@@ -17,7 +17,7 @@ const EmployeeWorkLog = () => {
 
     const fetchLogs = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/work/me');
+            const res = await api.get('/api/work/me');
             setLogs(res.data);
         } catch (err) {
             console.error(err);
@@ -27,7 +27,7 @@ const EmployeeWorkLog = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/work', formData);
+            await api.post('/api/work', formData);
             setFormData({ title: '', type: 'Development', duration: '', description: '' });
             fetchLogs();
         } catch (err) {

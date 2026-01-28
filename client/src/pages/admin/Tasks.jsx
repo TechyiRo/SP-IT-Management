@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Calendar, User, Clock, AlertCircle, LayoutList, Kanban, MoreVertical } from 'lucide-react';
 import CreateTaskModal from '../../components/admin/CreateTaskModal';
@@ -26,10 +26,10 @@ const Tasks = () => {
         setLoading(true);
         try {
             const [tasksRes, usersRes, companiesRes, productsRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/tasks'),
-                axios.get('http://localhost:5000/api/users'),
-                axios.get('http://localhost:5000/api/resources/companies'),
-                axios.get('http://localhost:5000/api/resources/products')
+                api.get('/api/tasks'),
+                api.get('/api/users'),
+                api.get('/api/resources/companies'),
+                api.get('/api/resources/products')
             ]);
 
             setTasks(Array.isArray(tasksRes.data) ? tasksRes.data : []);
@@ -47,7 +47,7 @@ const Tasks = () => {
 
     const handleTaskCreate = async (taskData) => {
         try {
-            await axios.post('http://localhost:5000/api/tasks', taskData);
+            await api.post('/api/tasks', taskData);
             setIsModalOpen(false);
             fetchData(); // Refresh list
         } catch (err) {

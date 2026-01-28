@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api, { BASE_URL } from '../../api/axios';
 import {
     ArrowLeft, Calendar, CheckSquare, FileText, User,
     AlertCircle, Layers, CheckCircle, Clock, History,
@@ -27,7 +27,7 @@ export default function TaskDetails() {
 
     const fetchTaskDetails = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/tasks/${id}`);
+            const res = await api.get(`/api/tasks/${id}`);
             setTask(res.data);
             setNewStatus(res.data.status);
             setReassignId(res.data.assignedTo?.[0]?._id || '');
@@ -40,7 +40,7 @@ export default function TaskDetails() {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/users');
+            const res = await api.get('/api/users');
             setUsers(res.data);
         } catch (err) {
             console.error(err);
@@ -70,7 +70,7 @@ export default function TaskDetails() {
                 updateData.adminNotes = (task.adminNotes ? task.adminNotes + '\n' : '') + `[Admin]: ${adminRemark}`;
             }
 
-            await axios.put(`http://localhost:5000/api/tasks/${id}`, updateData);
+            await api.put(`/api/tasks/${id}`, updateData);
 
             // If strictly "Add Remark" to the resolution log/work history, we might want to use the POST /updates endpoint too?
             // "Admin can also: Add remark". 
@@ -200,7 +200,7 @@ export default function TaskDetails() {
                                                         {update.attachments && update.attachments.length > 0 && (
                                                             <div className="flex gap-3 mt-3 pt-3 border-t border-white/5">
                                                                 {update.attachments.map((att, i) => (
-                                                                    <a key={i} href={`http://localhost:5000/${att}`} target="_blank" className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 bg-cyan-900/20 px-2 py-1 rounded">
+                                                                    <a key={i} href={`${BASE_URL}/${att}`} target="_blank" className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 bg-cyan-900/20 px-2 py-1 rounded">
                                                                         <Paperclip size={12} /> Attachment {i + 1}
                                                                     </a>
                                                                 ))}

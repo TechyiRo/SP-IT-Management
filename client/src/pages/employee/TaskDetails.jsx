@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api, { BASE_URL } from '../../api/axios';
 import {
     ArrowLeft, Clock, Calendar, CheckSquare, MessageSquare,
     FileText, User, Flag, Send, AlertCircle, Briefcase, Layers,
@@ -34,7 +34,7 @@ export default function TaskDetails() {
 
     const fetchTaskDetails = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/tasks/${id}`);
+            const res = await api.get(`/api/tasks/${id}`);
             setTask(res.data);
             setLoading(false);
         } catch (err) {
@@ -53,11 +53,7 @@ export default function TaskDetails() {
             });
             files.forEach(file => formData.append('attachments', file));
 
-            const url = `http://localhost:5000/api/tasks/${id}/updates`;
-            console.log('Submitting to:', url);
-            console.log('Task ID:', id);
-
-            const res = await axios.post(url, formData);
+            const res = await api.post(`/api/tasks/${id}/updates`, formData);
 
             setTask(res.data);
             setWorkflowForm({
@@ -86,7 +82,7 @@ export default function TaskDetails() {
     const handleStatusChange = async (newStatus) => {
         setStatusUpdating(true);
         try {
-            const res = await axios.put(`http://localhost:5000/api/tasks/${id}`, { status: newStatus });
+            const res = await api.put(`/api/tasks/${id}`, { status: newStatus });
             setTask(res.data);
         } catch (err) {
             console.error(err);
@@ -98,7 +94,7 @@ export default function TaskDetails() {
 
     const handleRequirementToggle = async (reqId, currentStatus) => {
         try {
-            const res = await axios.put(`http://localhost:5000/api/tasks/${id}/requirements/${reqId}`, {
+            const res = await api.put(`/api/tasks/${id}/requirements/${reqId}`, {
                 completed: !currentStatus
             });
             setTask(res.data);
@@ -321,7 +317,7 @@ export default function TaskDetails() {
                                         {update.attachments && update.attachments.length > 0 && (
                                             <div className="mt-3 flex gap-2">
                                                 {update.attachments.map((att, i) => (
-                                                    <a key={i} href={`http://localhost:5000/${att}`} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 flex items-center gap-1 hover:underline">
+                                                    <a key={i} href={`${BASE_URL}/${att}`} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 flex items-center gap-1 hover:underline">
                                                         <Paperclip size={12} /> Attachment {i + 1}
                                                     </a>
                                                 ))}

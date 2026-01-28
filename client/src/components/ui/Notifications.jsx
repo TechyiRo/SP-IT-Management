@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Bell, Check, X, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,7 +37,7 @@ const Notifications = () => {
         // Avoid setting global loading state to prevent flickering for polling
         // setLoading(true); 
         try {
-            const res = await axios.get('http://localhost:5000/api/notifications');
+            const res = await api.get('/api/notifications');
             setNotifications(res.data);
             setUnreadCount(res.data.filter(n => !n.read).length);
         } catch (err) {
@@ -55,7 +55,7 @@ const Notifications = () => {
     const markAsRead = async (id, e) => {
         e.stopPropagation(); // Prevent navigation when clicking mark as read
         try {
-            await axios.put(`http://localhost:5000/api/notifications/${id}/read`);
+            await api.put(`/api/notifications/${id}/read`);
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (err) {
@@ -65,7 +65,7 @@ const Notifications = () => {
 
     const markAllAsRead = async () => {
         try {
-            await axios.put('http://localhost:5000/api/notifications/mark-all-read');
+            await api.put('/api/notifications/mark-all-read');
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setUnreadCount(0);
         } catch (err) {

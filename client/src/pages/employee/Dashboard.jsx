@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { CheckSquare, Clock, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -19,7 +19,7 @@ const EmployeeDashboard = () => {
         const fetchData = async () => {
             try {
                 // Fetch Tasks Count
-                const tasksRes = await axios.get('http://localhost:5000/api/tasks/me');
+                const tasksRes = await api.get('/api/tasks/me');
                 const tasks = tasksRes.data;
                 const assigned = tasks.length;
                 const completed = tasks.filter(t => t.status === 'Completed').length;
@@ -28,7 +28,7 @@ const EmployeeDashboard = () => {
                 setStats({ assignedTasks: assigned, pendingTasks: pending, completedTasks: completed });
 
                 // Fetch Recent Notifications
-                const notifRes = await axios.get('http://localhost:5000/api/notifications');
+                const notifRes = await api.get('/api/notifications');
                 setRecentNotifications(notifRes.data.slice(0, 5)); // Top 5
 
                 setLoading(false);

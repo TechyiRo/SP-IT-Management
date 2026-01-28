@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { Plus, Search, Edit2, Trash2, UserPlus, Shield, Eye, EyeOff, Check, X } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 
@@ -42,7 +42,7 @@ const Users = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/users');
+            const res = await api.get('/api/users');
             setUsers(res.data);
             setLoading(false);
         } catch (err) {
@@ -95,7 +95,7 @@ const Users = () => {
         if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/users/${id}`);
+            await api.delete(`/api/users/${id}`);
             fetchUsers();
         } catch (err) {
             console.error(err);
@@ -107,9 +107,9 @@ const Users = () => {
         e.preventDefault();
         try {
             if (editMode) {
-                await axios.put(`http://localhost:5000/api/users/${currentUserId}`, formData);
+                await api.put(`/api/users/${currentUserId}`, formData);
             } else {
-                await axios.post('http://localhost:5000/api/users', {
+                await api.post('/api/users', {
                     ...formData,
                     joinDate: new Date()
                 });
