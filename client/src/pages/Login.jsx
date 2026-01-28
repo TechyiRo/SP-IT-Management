@@ -56,7 +56,6 @@ const Login = () => {
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300 ml-1">Username</label>
                         <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 type="text"
                                 className="glass-input w-full pl-10"
@@ -65,13 +64,13 @@ const Login = () => {
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                 required
                             />
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 type={showPassword ? "text" : "password"}
                                 className="glass-input w-full pl-10 pr-10"
@@ -80,6 +79,7 @@ const Login = () => {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 required
                             />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
