@@ -11,28 +11,25 @@ const EmployeeLayout = () => {
     const { logout, user } = useAuth();
     const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [gpsStatus, setGpsStatus] = useState('initializing'); // initializing, active, error
+    const [gpsStatus, setGpsStatus] = useState('initializing'); // initializing, active, error, server-error
+    const [gpsErrorMsg, setGpsErrorMsg] = useState('');
 
     // Live Location Heartbeat (Every 15 mins)
     useEffect(() => {
         const updateLocation = () => {
             if (!navigator.geolocation) {
                 setGpsStatus('error');
+                setGpsErrorMsg('Geolocation not supported by this browser.');
                 return;
             }
 
             console.log('Requesting location...');
+            setGpsStatus('syncing'); // Yellow while fetching/sending
+
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const { latitude, longitude } = position.coords;
-                setGpsStatus('active');
-
-                // Optional: Reverse Geocoding can be done here or in backend.
-                // For now, sending coords. We can fetch address via a free API like Nominatim if needed,
-                // or just store coords and let Admin frontend resolve it.
-                // Let's try a simple fetch if possible, or just send coords.
 
                 try {
-                    // Simple reverse geocode (Client-side to avoid backend complexity for now)
                     let address = 'Unknown Location';
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
@@ -40,17 +37,26 @@ const EmployeeLayout = () => {
                         address = data.display_name || 'Map Location';
                     } catch (e) { console.error('Geocode failed', e); }
 
-                    await api.put('/api/users/location', {
+                    // Send to Backend
+                    await api.put('/api/users/live-location', {
                         latitude, longitude, address
                     });
-                    console.log('Live location updated');
+
+                    console.log('Live location updated successfully');
+                    setGpsStatus('active'); // Green ONLY if server accepts it
+                    setGpsErrorMsg(''); // Clear error if successful
+
                 } catch (err) {
-                    console.error('Error updating location heartbeat', err);
-                    // Still 'active' regarding GPS, but API failed.
+                    console.error('Error sending location to server', err);
+                    // Try to get server error message
+                    const serverMsg = err.response?.data?.error || err.message || 'Unknown Error';
+                    setGpsStatus('server-error');
+                    setGpsErrorMsg(serverMsg);
                 }
             }, (err) => {
                 console.warn('Location access denied or unavailable', err);
                 setGpsStatus('error');
+                setGpsErrorMsg(err.message || 'Location access denied or unavailable.');
             }, { enableHighAccuracy: true });
         };
 
@@ -67,10 +73,8 @@ const EmployeeLayout = () => {
         { path: '/employee/attendance', icon: UserCheck, label: 'Attendance' },
         { path: '/employee/tasks', icon: CheckSquare, label: 'My Tasks' },
         { path: '/employee/work-log', icon: FileText, label: 'Work Log' },
-
         // Conditional Render
         ...(user?.permissions?.canAccessResources ? [{ path: '/employee/resources', icon: Package, label: 'Resources' }] : []),
-
         { path: '/employee/salary', icon: IndianRupee, label: 'My Salary' },
     ];
 
@@ -105,12 +109,26 @@ const EmployeeLayout = () => {
 
                 <div className="p-4 border-t border-white/10 space-y-4">
                     {/* GPS Status Indicator */}
-                    <div className={`text-xs flex items-center gap-2 justify-center py-1 rounded border ${gpsStatus === 'active' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                        gpsStatus === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                            'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                        }`}>
-                        <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-green-500 animate-pulse' : gpsStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
-                        {gpsStatus === 'active' ? 'GPS Active' : gpsStatus === 'error' ? 'GPS Error - Check Settings' : 'GPS Initializing...'}
+                    <div className="flex flex-col gap-1">
+                        <div
+                            title={gpsErrorMsg || (gpsStatus === 'active' ? "Your location is being shared securely." : "Status")}
+                            className={`text-xs flex items-center gap-2 justify-center py-1 rounded border ${gpsStatus === 'active' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                gpsStatus === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                    gpsStatus === 'server-error' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                        'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                }`}
+                        >
+                            <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-green-500 animate-pulse' : gpsStatus.includes('error') ? 'bg-red-500' : 'bg-yellow-500 animate-ping'}`}></div>
+                            {gpsStatus === 'active' ? 'GPS Active' :
+                                gpsStatus === 'error' ? 'GPS Perm. Denied' :
+                                    gpsStatus === 'server-error' ? 'Server Error' :
+                                        'Updating Location...'}
+                        </div>
+                        {gpsStatus === 'server-error' && (
+                            <div className="text-[10px] text-orange-400 text-center px-1 break-words">
+                                {gpsErrorMsg}
+                            </div>
+                        )}
                     </div>
 
                     <div className="glass-card bg-black/20 p-4 rounded-xl cursor-pointer hover:bg-black/30 transition-colors" onClick={() => setIsProfileOpen(true)}>
@@ -168,6 +186,29 @@ const EmployeeLayout = () => {
             </main>
 
             <EmployeeProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+
+            {/* Location Permission Modal - Forces user to enable location */}
+            {gpsStatus === 'error' && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="glass-card p-8 max-w-md w-full text-center space-y-6 border-red-500/30">
+                        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto text-red-400">
+                            <MapPin size={32} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Location Access Required</h2>
+                            <p className="text-gray-300">
+                                To proceed, you must allow location access. This is required for work tracking and attendance.
+                            </p>
+                            <p className="text-sm text-gray-500 mt-4">
+                                Please check your browser address bar (lock icon or location icon) and set Location to <strong>Allow</strong>. Then refresh the page.
+                            </p>
+                        </div>
+                        <button onClick={() => window.location.reload()} className="glass-button w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/50">
+                            I have enabled it, Refresh Page
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

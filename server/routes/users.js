@@ -4,6 +4,34 @@ const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 
+// @route   PUT api/users/live-location
+// @desc    Update user live location
+// @access  Private
+router.put('/live-location', auth, async (req, res) => {
+    try {
+        console.log(`[Location] Update request from user ${req.user.id}`);
+        const { latitude, longitude, address } = req.body;
+        console.log(`[Location] Data: Lat=${latitude}, Lon=${longitude}, Addr=${address}`);
+
+        const updatedUser = await User.findByIdAndUpdate(req.user.id, {
+            $set: {
+                lastLocation: {
+                    latitude,
+                    longitude,
+                    address,
+                    timestamp: new Date()
+                }
+            }
+        }, { new: true });
+
+        console.log(`[Location] User updated. New timestamp: ${updatedUser?.lastLocation?.timestamp}`);
+        res.json({ msg: 'Location updated' });
+    } catch (err) {
+        console.error('[Location] Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // @route   POST api/users
 // @desc    Register a user (Admin only)
 // @access  Private (Admin)
@@ -136,32 +164,7 @@ router.put('/profile', [auth, upload.single('profilePicture')], async (req, res)
     }
 });
 
-// @route   PUT api/users/location
-// @desc    Update user live location
-// @access  Private
-router.put('/location', auth, async (req, res) => {
-    try {
-        const { latitude, longitude, address } = req.body;
-
-        await User.findByIdAndUpdate(req.user.id, {
-            $set: {
-                lastLocation: {
-                    latitude,
-                    longitude,
-                    address,
-                    timestamp: new Date()
-                }
-            }
-        });
-
-        res.json({ msg: 'Location updated' });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
-
-// @route   PUT api/users/profile
+// @route   PUT api/users/:id
 // @desc    Update a user
 // @access  Private (Admin)
 router.put('/:id', auth, async (req, res) => {
