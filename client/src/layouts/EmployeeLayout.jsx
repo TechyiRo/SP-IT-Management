@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, UserCheck, CheckSquare, FileText, Package } from 'lucide-react';
+import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee } from 'lucide-react';
 import clsx from 'clsx';
 import Notifications from '../components/ui/Notifications';
 import { useState } from 'react';
@@ -16,7 +16,9 @@ const EmployeeLayout = () => {
         { path: '/employee/attendance', icon: UserCheck, label: 'Attendance' },
         { path: '/employee/tasks', icon: CheckSquare, label: 'Tasks' },
         { path: '/employee/work-log', icon: FileText, label: 'Work Log' },
+
         { path: '/employee/resources', icon: Package, label: 'Resources' },
+        { path: '/employee/salary', icon: IndianRupee, label: 'My Salary' },
     ];
 
     return (

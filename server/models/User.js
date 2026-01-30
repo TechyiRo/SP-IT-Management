@@ -9,7 +9,8 @@ const UserSchema = new mongoose.Schema({
     department: { type: String, required: true },
     phone: { type: String },
     address: { type: String, default: '' },
-    salary: { type: String, default: '' }, // Storing as string to allow flexibility/currency symbols if needed, or number. User didn't specify.
+    salary: { type: String, default: '' }, // Legacy text field
+    baseSalary: { type: Number, default: 0 }, // Numeric field for Payroll calculation
     joinDate: { type: Date, required: true },
     employeeId: { type: String, unique: true },
     profilePicture: { type: String, default: '' },

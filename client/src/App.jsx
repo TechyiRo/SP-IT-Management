@@ -15,6 +15,7 @@ import AdminTaskDetails from './pages/admin/TaskDetails';
 import AdminInventory from './pages/admin/Inventory';
 import AdminTracking from './pages/admin/Tracking';
 import AdminResources from './pages/admin/AdminResources';
+import Payroll from './pages/admin/Payroll';
 
 // Placeholder Pages
 import EmployeeDashboard from './pages/employee/Dashboard';
@@ -24,6 +25,7 @@ import TaskDetails from './pages/employee/TaskDetails';
 import EmployeeWorkLog from './pages/employee/WorkLog';
 
 import EmployeeResources from './pages/employee/Resources';
+import MySalary from './pages/employee/MySalary';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user, loading, isAuthenticated } = useAuth();
@@ -67,6 +69,7 @@ const AppRoutes = () => {
         <Route path="work-details" element={<WorkDetails />} />
         <Route path="inventory" element={<AdminInventory />} />
         <Route path="tracking" element={<AdminTracking />} />
+        <Route path="payroll" element={<Payroll />} />
       </Route>
 
       {/* Employee Routes */}
@@ -81,6 +84,7 @@ const AppRoutes = () => {
         <Route path="tasks/:id" element={<TaskDetails />} />
         <Route path="work-log" element={<EmployeeWorkLog />} />
         <Route path="resources" element={<EmployeeResources />} />
+        <Route path="salary" element={<MySalary />} />
       </Route>
     </Routes>
   );

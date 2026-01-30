@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, UserCheck, CheckSquare, Package, Building2, FileText, LogOut, Menu, X, Warehouse, Truck } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, CheckSquare, Package, Building2, FileText, LogOut, Menu, X, Warehouse, Truck, IndianRupee } from 'lucide-react';
 import clsx from 'clsx';
 
 const AdminLayout = () => {
@@ -16,6 +16,7 @@ const AdminLayout = () => {
         { path: '/admin/tasks', icon: CheckSquare, label: 'Task Management' },
         { path: '/admin/resources', icon: Package, label: 'Resources' },
         { path: '/admin/work-details', icon: FileText, label: 'Work Details' },
+        { path: '/admin/payroll', icon: IndianRupee, label: 'Payroll' },
     ];
 
     return (

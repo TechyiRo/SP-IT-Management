@@ -23,7 +23,7 @@ const Users = () => {
         department: 'IT',
         phone: '',
         address: '',
-        salary: '',
+        baseSalary: '',
         employeeId: '',
         role: 'employee',
         status: 'active',
@@ -55,7 +55,7 @@ const Users = () => {
 
     const resetForm = () => {
         setFormData({
-            username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', address: '', salary: '', employeeId: '', role: 'employee', status: 'active',
+            username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', address: '', baseSalary: '', employeeId: '', role: 'employee', status: 'active',
             permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false }
         });
         setEditMode(false);
@@ -78,7 +78,7 @@ const Users = () => {
             department: user.department || 'IT',
             phone: user.phone || '',
             address: user.address || '',
-            salary: user.salary || '',
+            baseSalary: user.baseSalary || '',
             employeeId: user.employeeId || '',
             role: user.role || 'employee',
             status: user.status || 'active',
@@ -194,6 +194,7 @@ const Users = () => {
                             <th className="p-4">Employee</th>
                             <th className="p-4">Role</th>
                             <th className="p-4">Department</th>
+                            <th className="p-4">Base Salary</th>
                             <th className="p-4">Status</th>
                             <th className="p-4 text-right">Actions</th>
                         </tr>
@@ -230,6 +231,7 @@ const Users = () => {
                                     </span>
                                 </td>
                                 <td className="p-4 text-gray-300">{user.department}</td>
+                                <td className="p-4 text-emerald-400 font-mono">₹ {(user.baseSalary || 0).toLocaleString()}</td>
                                 <td className="p-4">
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium max-w-fit flex items-center gap-1 ${user.status === 'active' ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
                                         <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`}></div>
@@ -325,8 +327,8 @@ const Users = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Salary</label>
-                                <input className="glass-input w-full" placeholder="e.g. 50000" value={formData.salary} onChange={e => setFormData({ ...formData, salary: e.target.value })} />
+                                <label className="text-xs font-medium text-gray-400">Base Salary (Monthly)</label>
+                                <input type="number" className="glass-input w-full" placeholder="e.g. 15000" value={formData.baseSalary} onChange={e => setFormData({ ...formData, baseSalary: e.target.value })} />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-medium text-gray-400">Address</label>

@@ -143,7 +143,7 @@ router.put('/:id', auth, async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ msg: 'Access denied' });
     }
-    const { username, fullName, email, designation, department, phone, employeeId, role, permissions, password, status } = req.body;
+    const { username, fullName, email, designation, department, phone, employeeId, role, permissions, password, status, baseSalary } = req.body;
 
     try {
         let user = await User.findById(req.params.id);
@@ -159,6 +159,7 @@ router.put('/:id', auth, async (req, res) => {
         user.role = role || user.role;
         user.permissions = permissions || user.permissions;
         if (status) user.status = status;
+        if (baseSalary !== undefined) user.baseSalary = baseSalary;
 
         if (password && password.trim() !== '') {
             const salt = await bcrypt.genSalt(10);
