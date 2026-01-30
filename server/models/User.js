@@ -21,7 +21,8 @@ const UserSchema = new mongoose.Schema({
         canAddCompanies: { type: Boolean, default: false },
         canViewAllTasks: { type: Boolean, default: false },
         canAddWorkDetails: { type: Boolean, default: true },
-        canViewReports: { type: Boolean, default: false }
+        canViewReports: { type: Boolean, default: false },
+        canAccessResources: { type: Boolean, default: false } // Controlled by Admin
     },
     lastLogin: { type: Date }
 }, { timestamps: true });

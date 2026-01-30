@@ -32,7 +32,8 @@ const Users = () => {
             canAddCompanies: false,
             canViewAllTasks: false,
             canAddWorkDetails: true,
-            canViewReports: false
+            canViewReports: false,
+            canAccessResources: false
         }
     });
 
@@ -56,7 +57,7 @@ const Users = () => {
     const resetForm = () => {
         setFormData({
             username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', address: '', baseSalary: '', employeeId: '', role: 'employee', status: 'active',
-            permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false }
+            permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false, canAccessResources: false }
         });
         setEditMode(false);
         setCurrentUserId(null);
@@ -87,7 +88,8 @@ const Users = () => {
                 canAddCompanies: user.permissions?.canAddCompanies || false,
                 canViewAllTasks: user.permissions?.canViewAllTasks || false,
                 canAddWorkDetails: user.permissions?.canAddWorkDetails || true,
-                canViewReports: user.permissions?.canViewReports || false
+                canViewReports: user.permissions?.canViewReports || false,
+                canAccessResources: user.permissions?.canAccessResources || false
             }
         });
         setEditMode(true);
@@ -366,7 +368,8 @@ const Users = () => {
                                     canAddCompanies: 'Can Add Companies',
                                     canViewAllTasks: 'Can View All Tasks',
                                     canAddWorkDetails: 'Can Add Work Details',
-                                    canViewReports: 'Can View Reports'
+                                    canViewReports: 'Can View Reports',
+                                    canAccessResources: 'Can Access Resources'
                                 }).map(([key, label]) => (
                                     <div key={key} className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer" onClick={() => togglePermission(key)}>
                                         <span className="text-sm text-gray-300">{label}</span>

@@ -166,6 +166,7 @@ router.put('/:id', auth, async (req, res) => {
         if (req.body.deadline) task.deadline = req.body.deadline;
         if (req.body.priority) task.priority = req.body.priority;
         if (req.body.adminNotes) task.adminNotes = req.body.adminNotes; // Support admin remarks
+        if (req.body.location) task.location = req.body.location; // Update latest location
 
 
         await task.save();
@@ -180,6 +181,16 @@ router.put('/:id', auth, async (req, res) => {
                 onModel: 'Task'
             }));
             await Notification.insertMany(notifications);
+        }
+
+        // Log Activity if status changed
+        if (req.body.status && req.body.status !== originalStatus) {
+            task.activityLog.push({
+                action: `Status changed to ${task.status}`,
+                user: req.user.id,
+                details: 'Via Status Pipeline',
+                location: req.body.location
+            });
         }
 
         // Notify on Reassignment (New users only - roughly)
@@ -289,7 +300,8 @@ router.post('/:id/updates', [auth, upload.array('attachments', 3)], async (req, 
             configurationChanged,
             resolutionSummary,
             remark,
-            status // Optional status update
+            status, // Optional status update
+            location // NEW: Location field
         } = req.body;
 
         console.log('Update Body:', req.body);
@@ -307,7 +319,10 @@ router.post('/:id/updates', [auth, upload.array('attachments', 3)], async (req, 
             resolutionSummary,
             remark,
             attachments,
-            statusSnapshot: status || task.status
+            remark,
+            attachments,
+            statusSnapshot: status || task.status,
+            location
         };
 
         if (!task.taskUpdates) task.taskUpdates = []; // Ensure array exists
@@ -316,21 +331,29 @@ router.post('/:id/updates', [auth, upload.array('attachments', 3)], async (req, 
         // If status is provided, update the main task status too
         if (status && status !== task.status) {
             task.status = status;
+        }
 
+        if (location) {
+            task.location = location;
+        }
+
+        if (status && status !== task.status) {
             // Notify others? (Simple reuse of logic if needed, or rely on client to call status update separately? 
             // Better to handle it here if passed)
             // We can add a system log too
             task.activityLog.push({
                 action: `Status changed to ${status}`,
                 user: req.user.id,
-                details: 'Via Activity Update'
+                details: 'Via Activity Update',
+                location
             });
         }
 
         task.activityLog.push({
             action: 'Detailed Update Added',
             user: req.user.id,
-            details: resolutionSummary ? resolutionSummary.substring(0, 50) + '...' : 'Work Logged'
+            details: resolutionSummary ? resolutionSummary.substring(0, 50) + '...' : 'Work Logged',
+            location
         });
 
         await task.save();

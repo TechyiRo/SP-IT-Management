@@ -17,7 +17,9 @@ const EmployeeLayout = () => {
         { path: '/employee/tasks', icon: CheckSquare, label: 'Tasks' },
         { path: '/employee/work-log', icon: FileText, label: 'Work Log' },
 
-        { path: '/employee/resources', icon: Package, label: 'Resources' },
+        // Conditionally render Resources based on permission
+        ...(user?.permissions?.canAccessResources ? [{ path: '/employee/resources', icon: Package, label: 'Resources' }] : []),
+
         { path: '/employee/salary', icon: IndianRupee, label: 'My Salary' },
     ];
 

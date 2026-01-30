@@ -83,7 +83,9 @@ const AppRoutes = () => {
         <Route path="tasks" element={<EmployeeTasks />} />
         <Route path="tasks/:id" element={<TaskDetails />} />
         <Route path="work-log" element={<EmployeeWorkLog />} />
-        <Route path="resources" element={<EmployeeResources />} />
+        <Route path="resources" element={
+          user?.permissions?.canAccessResources ? <EmployeeResources /> : <Navigate to="/employee" replace />
+        } />
         <Route path="salary" element={<MySalary />} />
       </Route>
     </Routes>

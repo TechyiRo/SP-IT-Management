@@ -24,7 +24,8 @@ const TaskSchema = new mongoose.Schema({
         action: String, // e.g., "Created", "Updated Status", "Commented"
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         timestamp: { type: Date, default: Date.now },
-        details: String
+        details: String,
+        location: String // Geo-link or coordinates
     }],
     assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     deadline: { type: Date },
@@ -45,13 +46,15 @@ const TaskSchema = new mongoose.Schema({
         remark: String,
         attachments: [String],
         // Snapshot of status at this update
-        statusSnapshot: String
+        statusSnapshot: String,
+        location: String
     }],
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     attachments: [{ type: String }],
     progress: { type: Number, default: 0 }, // 0-100
-    workLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'WorkLog' }]
+    workLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'WorkLog' }],
+    location: { type: String } // Latest known location (URL or coords)
 }, { timestamps: true });
 
 module.exports = mongoose.model('Task', TaskSchema);

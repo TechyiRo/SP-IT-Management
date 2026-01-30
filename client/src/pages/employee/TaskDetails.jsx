@@ -92,6 +92,25 @@ export default function TaskDetails() {
             });
             files.forEach(file => formData.append('attachments', file));
 
+            const getPosition = () => {
+                return new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) reject(new Error('Geolocation not supported'));
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+            };
+
+            let locationLink = '';
+            try {
+                const position = await getPosition();
+                const { latitude, longitude } = position.coords;
+                locationLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            } catch (geoErr) {
+                console.warn('Geolocation failed:', geoErr);
+                locationLink = 'Location Unavailable';
+            }
+
+            if (locationLink) formData.append('location', locationLink);
+
             const res = await api.post(`/api/tasks/${id}/updates`, formData);
 
             setTask(res.data);
@@ -122,7 +141,29 @@ export default function TaskDetails() {
     const handleStatusChange = async (newStatus) => {
         setStatusUpdating(true);
         try {
-            const res = await api.put(`/api/tasks/${id}`, { status: newStatus });
+            let locationLink = '';
+
+            // Only capture location for 'In Progress' or maybe all? User said "click on In Progress"
+            if (newStatus === 'In Progress') {
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) reject(new Error('Geolocation not supported'));
+                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                    });
+                    const { latitude, longitude } = position.coords;
+                    locationLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                } catch (geoErr) {
+                    console.warn('Geolocation failed:', geoErr);
+                    // Optional: Alert user/ask? or just proceed?
+                    // Proceed with error note
+                    locationLink = 'Location Unavailable';
+                }
+            }
+
+            const res = await api.put(`/api/tasks/${id}`, {
+                status: newStatus,
+                location: locationLink
+            });
             setTask(res.data);
         } catch (err) {
             console.error(err);

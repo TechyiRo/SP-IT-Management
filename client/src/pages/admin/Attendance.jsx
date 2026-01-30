@@ -208,7 +208,14 @@ const Attendance = () => {
                                         {req.type === 'checkIn' && (
                                             <div className="text-sm">
                                                 <div className="flex items-center gap-2 text-gray-300 mb-1"><Clock size={14} className="text-emerald-400" /> {formatTime(req.checkIn.time)}</div>
-                                                <div className="flex items-center gap-2 text-gray-300"><MapPin size={14} className="text-cyan-400" /> {req.location || 'Office'}</div>
+                                                <div className="flex items-center gap-2 text-gray-300">
+                                                    <MapPin size={14} className="text-cyan-400" />
+                                                    {req.location && req.location.startsWith('http') ? (
+                                                        <a href={req.location} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">View Location</a>
+                                                    ) : (
+                                                        req.location || 'Office'
+                                                    )}
+                                                </div>
                                                 {req.checkIn.remarks && <p className="text-xs text-gray-500 mt-2 italic">"{req.checkIn.remarks}"</p>}
                                             </div>
                                         )}
@@ -283,6 +290,7 @@ const Attendance = () => {
                             <th className="p-4 font-semibold">Employee</th>
                             <th className="p-4 font-semibold">Date</th>
                             <th className="p-4 font-semibold">Check In</th>
+                            <th className="p-4 font-semibold">Location</th>
                             <th className="p-4 font-semibold">Check Out</th>
                             <th className="p-4 font-semibold">Duration</th>
                             <th className="p-4 font-semibold">Status</th>
@@ -306,6 +314,17 @@ const Attendance = () => {
                                     <td className="p-4 text-gray-300 whitespace-nowrap">{formatDate(record.date)}</td>
                                     <td className="p-4 text-emerald-400 font-mono text-sm">
                                         {record.checkIn?.time ? formatTime(record.checkIn.time) : '-'}
+                                    </td>
+                                    <td className="p-4 text-gray-300 text-sm">
+                                        {record.location && record.location.startsWith('http') ? (
+                                            <a href={record.location} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                                                <MapPin size={14} /> View
+                                            </a>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-gray-500">
+                                                <MapPin size={14} /> {record.location || '-'}
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="p-4 text-orange-400 font-mono text-sm">
                                         {record.checkOut?.time ? formatTime(record.checkOut.time) : '-'}

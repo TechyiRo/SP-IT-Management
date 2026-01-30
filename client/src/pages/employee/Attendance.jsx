@@ -43,14 +43,46 @@ const EmployeeAttendance = () => {
     };
 
     const handleCheckInRequest = async () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        const getPosition = () => {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+        };
+
         try {
-            // Optional: Get Location
-            const location = "Office (Auto)"; // Placeholder for actual Geo logic
-            await api.post('/api/attendance/check-in', { location, remarks: 'Regular Check-in' });
+            setLoading(true);
+            const position = await getPosition();
+            const { latitude, longitude } = position.coords;
+            const locationLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+
+            await api.post('/api/attendance/check-in', {
+                location: locationLink,
+                remarks: 'Regular Check-in'
+            });
             alert('Check-In Request Sent! 🟢');
             fetchAttendanceData();
         } catch (err) {
-            alert(err.response?.data?.msg || 'Request Failed');
+            console.error(err);
+            // Allow check-in even if location fails, but note it
+            const errorMsg = err.code === 1 ? "Location Denied" : "Location Unavailable";
+
+            try {
+                await api.post('/api/attendance/check-in', {
+                    location: errorMsg,
+                    remarks: 'Regular Check-in (Location Failed)'
+                });
+                alert('Check-In Request Sent (without location)! 🟢');
+                fetchAttendanceData();
+            } catch (innerErr) {
+                alert(innerErr.response?.data?.msg || 'Request Failed');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 

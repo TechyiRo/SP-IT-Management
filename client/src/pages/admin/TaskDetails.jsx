@@ -4,7 +4,7 @@ import api, { BASE_URL } from '../../api/axios';
 import {
     ArrowLeft, Calendar, CheckSquare, FileText, User,
     AlertCircle, Layers, CheckCircle, Clock, History,
-    MessageSquare, Paperclip, Shield, Send
+    MessageSquare, Paperclip, Shield, Send, MapPin
 } from 'lucide-react';
 
 export default function TaskDetails() {
@@ -128,13 +128,13 @@ export default function TaskDetails() {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Tabs */}
                     <div className="flex border-b border-white/10">
-                        {['tracking', 'details'].map(tab => (
+                        {['tracking', 'details', 'activity'].map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeTab === tab ? 'text-cyan-400' : 'text-gray-400 hover:text-white'}`}
                             >
-                                {tab === 'tracking' ? 'Task Tracking & Resolution' : 'Task Details'}
+                                {tab === 'tracking' ? 'Task Tracking & Resolution' : tab === 'details' ? 'Task Details' : 'Activity History'}
                                 {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>}
                             </button>
                         ))}
@@ -150,7 +150,7 @@ export default function TaskDetails() {
                                     </h3>
 
                                     {task.taskUpdates && task.taskUpdates.length > 0 ? (
-                                        <div className="relative border-l-2 border-slate-700 ml-3 space-y-8">
+                                        <div className="relative border-l-2 border-cyan-500/30 ml-3 space-y-8">
                                             {task.taskUpdates.map((update, idx) => (
                                                 <div key={idx} className="relative pl-8">
                                                     <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-slate-900 border-2 border-cyan-500"></div>
@@ -167,6 +167,11 @@ export default function TaskDetails() {
                                                                 <span className="text-xs bg-slate-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
                                                                     Status: {update.statusSnapshot}
                                                                 </span>
+                                                            )}
+                                                            {update.location && (
+                                                                <a href={update.location} target="_blank" rel="noopener noreferrer" className="ml-2 text-xs bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded border border-cyan-500/30 hover:bg-cyan-900/50 flex items-center gap-1">
+                                                                    <MapPin size={10} /> Loc
+                                                                </a>
                                                             )}
                                                         </div>
 
@@ -246,6 +251,33 @@ export default function TaskDetails() {
                                 </div>
                             </div>
                         )}
+
+                        {activeTab === 'activity' && (
+                            <div className="animate-fade-in space-y-4">
+                                <h3 className="text-lg font-semibold text-white mb-4">Activity History</h3>
+                                {task.activityLog && task.activityLog.length > 0 ? (
+                                    <div className="relative border-l-2 border-white/20 ml-3 space-y-6">
+                                        {task.activityLog.map((log, idx) => (
+                                            <div key={idx} className="relative pl-6">
+                                                <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-cyan-500 ring-4 ring-slate-900"></div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium text-white">{log.action}</span>
+                                                    <span className="text-xs text-gray-500">{new Date(log.timestamp).toLocaleString()} • {log.user?.fullName || 'User'}</span>
+                                                    {log.details && <p className="text-sm text-gray-300 mt-1 bg-white/5 p-2 rounded">{log.details}</p>}
+                                                    {log.location && (
+                                                        <a href={log.location} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 mt-1 inline-flex items-center gap-1 hover:underline">
+                                                            <MapPin size={12} /> View Location
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">No activity recorded yet.</p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -312,6 +344,14 @@ export default function TaskDetails() {
                                 <span className="text-gray-500">Updated:</span>
                                 <span className="text-gray-300">{new Date(task.updatedAt).toLocaleDateString()}</span>
                             </div>
+                            {task.location && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Location:</span>
+                                    <a href={task.location} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline flex items-center gap-1">
+                                        <MapPin size={14} /> View Location
+                                    </a>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Created By:</span>
                                 <span className="text-gray-300">{task.assignedBy?.fullName || 'Admin'}</span>
