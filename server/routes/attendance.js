@@ -70,7 +70,15 @@ router.post('/check-out', auth, async (req, res) => {
         });
 
         if (!attendance || attendance.checkIn.status !== 'Approved') {
-            return res.status(400).json({ msg: 'You must be checked in first' });
+            return res.status(400).json({
+                msg: 'You must be checked in first',
+                debug: {
+                    serverDate: today,
+                    found: !!attendance,
+                    checkInStatus: attendance?.checkIn?.status,
+                    recordDate: attendance?.date
+                }
+            });
         }
 
         if (attendance.checkOut.status === 'Approved') {

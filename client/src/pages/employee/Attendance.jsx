@@ -92,7 +92,12 @@ const EmployeeAttendance = () => {
             alert('Check-Out Request Sent! 🔴');
             fetchAttendanceData();
         } catch (err) {
-            alert(err.response?.data?.msg || 'Request Failed');
+            const data = err.response?.data;
+            let msg = data?.msg || 'Request Failed';
+            if (data?.debug) {
+                msg += `\nDebug: Found=${data.debug.found}, Status=${data.debug.checkInStatus}, Date=${data.debug.serverDate}`;
+            }
+            alert(msg);
         }
     };
 
