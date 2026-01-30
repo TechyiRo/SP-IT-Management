@@ -38,6 +38,24 @@
   .nav-pill-mobile {
     @apply bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-full px-6 py-3 flex items-center justify-around mx-4 mb-4;
   }
+
+  /* --- Minimal Dark Theme --- */
+  .bg-minimal-dark {
+    @apply bg-black text-white;
+  }
+
+  .glass-card-minimal {
+    @apply bg-zinc-900 border border-zinc-800 shadow-none rounded-2xl;
+  }
+
+  /* --- Soft Light Theme --- */
+  .bg-soft-light {
+    @apply bg-[#f8fafc] text-slate-900;
+  }
+
+  .glass-card-soft {
+    @apply bg-white border border-slate-200 shadow-sm rounded-2xl text-slate-900;
+  }
 }
 
 body {

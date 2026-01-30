@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee, MapPin } from 'lucide-react';
+import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee, MapPin, Palette } from 'lucide-react';
 import clsx from 'clsx';
 import Notifications from '../components/ui/Notifications';
 import { useState, useEffect } from 'react';
@@ -13,6 +13,30 @@ const EmployeeLayout = () => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [gpsStatus, setGpsStatus] = useState('initializing'); // initializing, active, error, server-error
     const [gpsErrorMsg, setGpsErrorMsg] = useState('');
+
+    // Mobile Theme State: 'vibrant', 'minimal', 'soft'
+    const [mobileTheme, setMobileTheme] = useState(localStorage.getItem('mobileTheme') || 'vibrant');
+
+    const toggleTheme = () => {
+        const themes = ['vibrant', 'minimal', 'soft'];
+        const nextIndex = (themes.indexOf(mobileTheme) + 1) % themes.length;
+        const nextTheme = themes[nextIndex];
+        setMobileTheme(nextTheme);
+        localStorage.setItem('mobileTheme', nextTheme);
+    };
+
+    // Theme Styles Helper
+    const getThemeStyles = () => {
+        switch (mobileTheme) {
+            case 'minimal':
+                return { bg: 'bg-minimal-dark', card: 'glass-card-minimal', text: 'text-white' };
+            case 'soft':
+                return { bg: 'bg-soft-light', card: 'glass-card-soft', text: 'text-slate-900' };
+            default: // vibrant
+                return { bg: 'bg-vibrant-gradient', card: 'glass-card-mobile', text: 'text-white' };
+        }
+    };
+    const themeParams = getThemeStyles();
 
     // Live Location Heartbeat (Every 15 mins)
     useEffect(() => {
@@ -79,7 +103,7 @@ const EmployeeLayout = () => {
     ];
 
     return (
-        <div className="flex h-screen overflow-hidden bg-vibrant-gradient md:bg-none">
+        <div className={`flex h-screen overflow-hidden ${themeParams.bg} md:bg-none`}>
             {/* Desktop Sidebar (visible on md+) */}
             <aside className="fixed md:relative inset-y-0 left-0 z-50 w-64 glass-card m-0 md:m-4 md:mr-0 rounded-none md:rounded-2xl hidden md:flex flex-col transition-transform duration-300 ease-in-out">
                 <div className="p-6 border-b border-white/10 flex items-center gap-3">
@@ -155,7 +179,7 @@ const EmployeeLayout = () => {
 
             {/* Mobile Bottom Nav (Floating Pill) */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50">
-                <div className="nav-pill-mobile">
+                <div className={`nav-pill-mobile ${mobileTheme === 'soft' ? 'bg-white border-slate-200 shadow-lg text-slate-800' : ''}`}>
                     {menuItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.path;
@@ -165,17 +189,17 @@ const EmployeeLayout = () => {
                                 to={item.path}
                                 className={clsx(
                                     "flex flex-col items-center gap-1 transition-all duration-300 relative",
-                                    isActive ? "text-white -translate-y-2 scale-110" : "text-white/60"
+                                    isActive ? (mobileTheme === 'soft' ? "text-cyan-600 -translate-y-2 scale-110" : "text-white -translate-y-2 scale-110") : (mobileTheme === 'soft' ? "text-slate-400" : "text-white/60")
                                 )}
                             >
-                                <div className={clsx("p-2 rounded-full", isActive && "bg-white/20 shadow-glow")}>
+                                <div className={clsx("p-2 rounded-full", isActive && (mobileTheme === 'soft' ? "bg-cyan-50 shadow-sm" : "bg-white/20 shadow-glow"))}>
                                     <Icon className={clsx("w-6 h-6", isActive && "animate-pulse")} />
                                 </div>
                                 <span className={clsx("text-[10px] font-medium transition-opacity", isActive ? "opacity-100" : "opacity-0 absolute -bottom-4")}>{item.label}</span>
                             </Link>
                         );
                     })}
-                    <button onClick={logout} className="flex flex-col items-center gap-1 text-red-400/80 hover:text-red-400">
+                    <button onClick={logout} className={clsx("flex flex-col items-center gap-1 hover:text-red-500", mobileTheme === 'soft' ? "text-red-400" : "text-red-400/80")}>
                         <div className="p-2">
                             <LogOut className="w-6 h-6" />
                         </div>
@@ -184,17 +208,24 @@ const EmployeeLayout = () => {
             </nav>
 
             {/* Mobile Top Bar */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shadow-lg">
+            <div className="md:hidden fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent pointer-events-none sticky-bar-wrapper">
+                <div className="flex items-center gap-2 pointer-events-auto">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shadow-lg text-white">
                         {user?.username?.substring(0, 2).toUpperCase()}
                     </div>
-                    <span className="font-bold text-lg text-white drop-shadow-md">Hello, {user?.fullName?.split(' ')[0]}</span>
+                    <div className="flex flex-col">
+                        <span className={`font-bold text-lg drop-shadow-md ${themeParams.text}`}>Hello, {user?.fullName?.split(' ')[0]}</span>
+                        <span className={`text-[10px] opacity-80 ${themeParams.text}`}>{mobileTheme.toUpperCase()} Theme</span>
+                    </div>
                 </div>
-                <div className="flex gap-3">
-                    <div className="glass-card-mobile px-2 py-1 flex items-center gap-1 text-xs">
+                <div className="flex gap-3 pointer-events-auto">
+                    <button onClick={toggleTheme} className="glass-card-mobile px-2 py-1 flex items-center justify-center active:scale-95 transition-transform" title="Switch Theme">
+                        <Palette size={16} className={mobileTheme === 'soft' ? 'text-slate-700' : 'text-white'} />
+                    </button>
+
+                    <div className={`glass-card-mobile px-2 py-1 flex items-center gap-1 text-xs ${mobileTheme === 'soft' ? 'text-slate-700' : 'text-white'}`}>
                         <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
-                        {gpsStatus === 'active' ? 'GPS ON' : 'GPS...'}
+                        {gpsStatus === 'active' ? 'GPS' : '...'}
                     </div>
                     <Notifications />
                 </div>
@@ -203,8 +234,8 @@ const EmployeeLayout = () => {
 
             {/* Main Content */}
             <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-24 md:pb-8 pt-20 md:pt-8 scrollbar-hide">
-                <div className="glass-card-mobile md:glass-card min-h-full p-4 md:p-6 animate-fade-in-up">
-                    <Outlet />
+                <div className={`${themeParams.card} md:glass-card min-h-full p-4 md:p-6 animate-fade-in-up transition-colors duration-500`}>
+                    <Outlet context={{ mobileTheme }} />
                 </div>
             </main>
 
