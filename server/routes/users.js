@@ -136,7 +136,32 @@ router.put('/profile', [auth, upload.single('profilePicture')], async (req, res)
     }
 });
 
-// @route   PUT api/users/:id
+// @route   PUT api/users/location
+// @desc    Update user live location
+// @access  Private
+router.put('/location', auth, async (req, res) => {
+    try {
+        const { latitude, longitude, address } = req.body;
+
+        await User.findByIdAndUpdate(req.user.id, {
+            $set: {
+                lastLocation: {
+                    latitude,
+                    longitude,
+                    address,
+                    timestamp: new Date()
+                }
+            }
+        });
+
+        res.json({ msg: 'Location updated' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   PUT api/users/profile
 // @desc    Update a user
 // @access  Private (Admin)
 router.put('/:id', auth, async (req, res) => {

@@ -14,6 +14,7 @@ import WorkDetails from './pages/admin/WorkDetails';
 import AdminTaskDetails from './pages/admin/TaskDetails';
 import AdminInventory from './pages/admin/Inventory';
 import AdminTracking from './pages/admin/Tracking';
+import AdminLiveTracking from './pages/admin/LiveTracking';
 import AdminResources from './pages/admin/AdminResources';
 import Payroll from './pages/admin/Payroll';
 
@@ -69,6 +70,7 @@ const AppRoutes = () => {
         <Route path="work-details" element={<WorkDetails />} />
         <Route path="inventory" element={<AdminInventory />} />
         <Route path="tracking" element={<AdminTracking />} />
+        <Route path="live-tracking" element={<AdminLiveTracking />} />
         <Route path="payroll" element={<Payroll />} />
       </Route>
 

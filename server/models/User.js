@@ -24,6 +24,12 @@ const UserSchema = new mongoose.Schema({
         canViewReports: { type: Boolean, default: false },
         canAccessResources: { type: Boolean, default: false } // Controlled by Admin
     },
+    lastLocation: {
+        latitude: String,
+        longitude: String,
+        address: String,
+        timestamp: Date
+    },
     lastLogin: { type: Date }
 }, { timestamps: true });
 
