@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
@@ -13,6 +14,7 @@ import WorkDetails from './pages/admin/WorkDetails';
 import AdminTaskDetails from './pages/admin/TaskDetails';
 import AdminInventory from './pages/admin/Inventory';
 import AdminTracking from './pages/admin/Tracking';
+import AdminResources from './pages/admin/AdminResources';
 
 // Placeholder Pages
 import EmployeeDashboard from './pages/employee/Dashboard';
@@ -59,6 +61,7 @@ const AppRoutes = () => {
         <Route path="attendance" element={<Attendance />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="tasks/:id" element={<AdminTaskDetails />} />
+        <Route path="resources" element={<AdminResources />} />
         <Route path="products" element={<Products />} />
         <Route path="companies" element={<Companies />} />
         <Route path="work-details" element={<WorkDetails />} />
@@ -83,11 +86,43 @@ const AppRoutes = () => {
   );
 };
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-white bg-slate-900 min-h-screen">
+          <h1 className="text-2xl font-bold text-red-500 mb-4">Something went wrong.</h1>
+          <pre className="bg-black/30 p-4 rounded text-sm overflow-auto">
+            {this.state.error && this.state.error.toString()}
+          </pre>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <ErrorBoundary>
+          <AppRoutes />
+        </ErrorBoundary>
       </AuthProvider>
     </Router>
   );

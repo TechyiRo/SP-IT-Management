@@ -14,10 +14,7 @@ const AdminLayout = () => {
         { path: '/admin/users', icon: Users, label: 'User Management' },
         { path: '/admin/attendance', icon: UserCheck, label: 'Attendance' },
         { path: '/admin/tasks', icon: CheckSquare, label: 'Task Management' },
-        { path: '/admin/products', icon: Package, label: 'Products' },
-        { path: '/admin/companies', icon: Building2, label: 'Companies' },
-        { path: '/admin/inventory', icon: Warehouse, label: 'Inventory' },
-        { path: '/admin/tracking', icon: Truck, label: 'Tracking' },
+        { path: '/admin/resources', icon: Package, label: 'Resources' },
         { path: '/admin/work-details', icon: FileText, label: 'Work Details' },
     ];
 

@@ -59,6 +59,83 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+const multer = require('multer');
+const path = require('path');
+
+// Configure Multer Storage
+const storage = multer.diskStorage({
+    destination: './uploads/profiles/',
+    filename: function (req, file, cb) {
+        cb(null, 'profile-' + req.user.id + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5000000 }, // 5MB limit
+    fileFilter: function (req, file, cb) {
+        checkFileType(file, cb);
+    }
+});
+
+// Check File Type
+function checkFileType(file, cb) {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb('Error: Images Only!');
+    }
+}
+
+// @route   PUT api/users/profile
+// @desc    Update own profile
+// @access  Private
+router.put('/profile', [auth, upload.single('profilePicture')], async (req, res) => {
+    // Note: req.body fields are available AFTER multer processes the form-data
+    const { fullName, phone, address, designation, salary } = req.body;
+
+    // Build profile object
+    const profileFields = {};
+    if (fullName) profileFields.fullName = fullName;
+    if (phone) profileFields.phone = phone;
+    if (address) profileFields.address = address;
+    if (designation) profileFields.designation = designation;
+    if (salary) profileFields.salary = salary;
+
+    // If a file was uploaded, set the profilePicture path
+    if (req.file) {
+        // Construct URL assuming server runs on port 5000 (or whatever configured)
+        // Ideally, store relative path and prepend base URL in frontend, OR store full URL here.
+        // For simplicity, let's store the relative path users can access via http://localhost:5000/uploads/...
+        // But to make it easier for frontend, let's try to construct a relative URL they can use.
+        profileFields.profilePicture = `/uploads/profiles/${req.file.filename}`;
+    } else if (req.body.profilePicture) {
+        // If they sent a string URL (not a file), update it too (optional flexibility)
+        profileFields.profilePicture = req.body.profilePicture;
+    }
+
+    try {
+        let user = await User.findById(req.user.id);
+
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+
+        user = await User.findByIdAndUpdate(
+            req.user.id,
+            { $set: profileFields },
+            { new: true }
+        ).select('-password');
+
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   PUT api/users/:id
 // @desc    Update a user
 // @access  Private (Admin)

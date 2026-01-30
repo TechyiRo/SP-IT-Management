@@ -8,6 +8,8 @@ const UserSchema = new mongoose.Schema({
     designation: { type: String, required: true }, // Developer, Manager, etc.
     department: { type: String, required: true },
     phone: { type: String },
+    address: { type: String, default: '' },
+    salary: { type: String, default: '' }, // Storing as string to allow flexibility/currency symbols if needed, or number. User didn't specify.
     joinDate: { type: Date, required: true },
     employeeId: { type: String, unique: true },
     profilePicture: { type: String, default: '' },

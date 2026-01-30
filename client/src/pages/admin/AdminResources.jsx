@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { Package, Building2, Plus, Search, Trash2, X, Edit, Warehouse, Truck } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 
-const Resources = () => {
+const AdminResources = () => {
     const [activeTab, setActiveTab] = useState('products'); // products | companies | inventory | tracking
     const [products, setProducts] = useState([]);
     const [companies, setCompanies] = useState([]);
@@ -21,7 +21,7 @@ const Resources = () => {
     // Dynamic Product Types State
     const defaultProductTypes = ['Laptop', 'Monitor', 'Accessory', 'Mobile', 'Tablet'];
     const [productTypes, setProductTypes] = useState(() => {
-        const saved = localStorage.getItem('employeeProductTypesList');
+        const saved = localStorage.getItem('adminProductTypesList');
         return saved ? JSON.parse(saved) : defaultProductTypes;
     });
     const [showTypeManager, setShowTypeManager] = useState(false);
@@ -44,11 +44,12 @@ const Resources = () => {
     const [vendorInput, setVendorInput] = useState('');
 
     useEffect(() => {
+        console.log("AdminResources Mounted");
         fetchResources();
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('employeeProductTypesList', JSON.stringify(productTypes));
+        localStorage.setItem('adminProductTypesList', JSON.stringify(productTypes));
     }, [productTypes]);
 
     const fetchResources = async () => {
@@ -114,9 +115,6 @@ const Resources = () => {
             fetchResources();
             setCompanyForm({ name: '', address: '', type: 'Client', contactPerson: '', email: '', phone: '' });
             setEditingId(null);
-
-            // If we came from tracking modal (simplistic check: if tracking modal was the goal)
-            // Ideally we'd have a 'returnTo' state, but for now user can just re-open tracking
         } catch (err) {
             alert('Error saving company');
         }
@@ -192,7 +190,15 @@ const Resources = () => {
         setIsProductModalOpen(true);
     };
 
-
+    const handleDeleteProduct = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this product?')) return;
+        try {
+            await api.delete(`/api/resources/products/${id}`);
+            fetchResources();
+        } catch (err) {
+            alert('Error deleting product');
+        }
+    };
 
     const handleEditCompany = (item) => {
         setCompanyForm({
@@ -207,7 +213,15 @@ const Resources = () => {
         setIsCompanyModalOpen(true);
     };
 
-
+    const handleDeleteCompany = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this company?')) return;
+        try {
+            await api.delete(`/api/resources/companies/${id}`);
+            fetchResources();
+        } catch (err) {
+            alert('Error deleting company');
+        }
+    };
 
     const handleEditInventory = (item) => {
         setInventoryForm({
@@ -220,7 +234,15 @@ const Resources = () => {
         setIsInventoryModalOpen(true);
     };
 
-
+    const handleDeleteInventory = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this item?')) return;
+        try {
+            await api.delete(`/api/inventory/${id}`);
+            fetchResources();
+        } catch (err) {
+            alert('Error deleting item');
+        }
+    };
 
     const handleEditTracking = (item) => {
         setTrackingForm({
@@ -233,6 +255,18 @@ const Resources = () => {
         setEditingId(item._id);
         setIsTrackingModalOpen(true);
     };
+
+    // Tracking deletion - Optional, adding it for consistency if needed, but user didn't explicitly ask for tracking deletion yet, only mentioned resource deletion. I will add it for safety to cover all bases for Admin.
+    const handleDeleteTracking = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this tracking record?')) return;
+        try {
+            await api.delete(`/api/tracking/${id}`);
+            fetchResources();
+        } catch (err) {
+            alert('Error deleting tracking record');
+        }
+    };
+
 
     const openAddModal = (type) => {
         setEditingId(null);
@@ -305,10 +339,10 @@ const Resources = () => {
             </div>
 
             <div className="flex gap-2 border-b border-white/10 overflow-x-auto no-scrollbar">
-                <TabButton id="products" label="My Products" icon={Package} />
-                <TabButton id="companies" label="My Companies" icon={Building2} />
-                <TabButton id="inventory" label="Material Inventory" icon={Warehouse} />
-                <TabButton id="tracking" label="Material Tracking" icon={Truck} />
+                <TabButton id="products" label="Products" icon={Package} />
+                <TabButton id="companies" label="Companies" icon={Building2} />
+                <TabButton id="inventory" label="Inventory" icon={Warehouse} />
+                <TabButton id="tracking" label="Tracking" icon={Truck} />
             </div>
 
             <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl">
@@ -347,7 +381,10 @@ const Resources = () => {
                             </button>
                             <button
                                 onClick={() => {
-                                    alert('Permission Denied: Only Admins can delete items. Please contact Admin.');
+                                    if (activeTab === 'products') handleDeleteProduct(item._id);
+                                    else if (activeTab === 'companies') handleDeleteCompany(item._id);
+                                    else if (activeTab === 'inventory') handleDeleteInventory(item._id);
+                                    else handleDeleteTracking(item._id);
                                 }}
                                 className="p-1.5 bg-red-500/10 text-red-400 rounded hover:bg-red-500/20"
                             >
@@ -721,5 +758,4 @@ const Resources = () => {
     );
 };
 
-export default Resources;
-
+export default AdminResources;

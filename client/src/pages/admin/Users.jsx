@@ -22,6 +22,8 @@ const Users = () => {
         designation: 'Developer',
         department: 'IT',
         phone: '',
+        address: '',
+        salary: '',
         employeeId: '',
         role: 'employee',
         status: 'active',
@@ -53,7 +55,7 @@ const Users = () => {
 
     const resetForm = () => {
         setFormData({
-            username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', employeeId: '', role: 'employee', status: 'active',
+            username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', address: '', salary: '', employeeId: '', role: 'employee', status: 'active',
             permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false }
         });
         setEditMode(false);
@@ -75,6 +77,8 @@ const Users = () => {
             designation: user.designation || 'Developer',
             department: user.department || 'IT',
             phone: user.phone || '',
+            address: user.address || '',
+            salary: user.salary || '',
             employeeId: user.employeeId || '',
             role: user.role || 'employee',
             status: user.status || 'active',
@@ -203,8 +207,16 @@ const Users = () => {
                             <tr key={user._id} className="hover:bg-white/5 transition-colors group">
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow">
-                                            {user.fullName ? user.fullName.charAt(0) : 'U'}
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow overflow-hidden">
+                                            {user.profilePicture ? (
+                                                <img
+                                                    src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
+                                                    alt={user.fullName}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                user.fullName ? user.fullName.charAt(0) : 'U'
+                                            )}
                                         </div>
                                         <div>
                                             <div className="font-medium text-white">{user.fullName || 'No Name'}</div>
@@ -308,6 +320,17 @@ const Users = () => {
                             <div className="space-y-1">
                                 <label className="text-xs font-medium text-gray-400">Employee ID</label>
                                 <input required className="glass-input w-full" value={formData.employeeId} onChange={e => setFormData({ ...formData, employeeId: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium text-gray-400">Salary</label>
+                                <input className="glass-input w-full" placeholder="e.g. 50000" value={formData.salary} onChange={e => setFormData({ ...formData, salary: e.target.value })} />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium text-gray-400">Address</label>
+                                <input className="glass-input w-full" placeholder="Full Address" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
                             </div>
                         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import html2canvas from 'html2canvas';
 import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Calendar, User, Clock, AlertCircle, LayoutList, Kanban, MoreVertical } from 'lucide-react';
@@ -17,8 +18,8 @@ const Tasks = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'board'
-
     const [editingTask, setEditingTask] = useState(null);
+    const [showToast, setShowToast] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -40,7 +41,6 @@ const Tasks = () => {
             setProducts(productsRes.data);
         } catch (err) {
             console.error('Error fetching data:', err);
-            // Fallback empty states
             setTasks([]);
         } finally {
             setLoading(false);
@@ -51,10 +51,123 @@ const Tasks = () => {
         try {
             await api.post('/api/tasks', taskData);
             setIsModalOpen(false);
-            fetchData(); // Refresh list
+            fetchData();
         } catch (err) {
             console.error('Error creating task:', err);
             alert('Error creating task: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
+    const handleWhatsAppShare = async (task, e) => {
+        e.stopPropagation();
+        const user = task.assignedTo && task.assignedTo.length > 0 ? task.assignedTo[0] : null;
+        const phone = user?.phone;
+
+        if (!phone) {
+            alert('No phone number found for the assigned user.');
+            return;
+        }
+
+        // 1. Create Hidden Card for Image Generation
+        const cardId = `task-card-${task._id}`;
+        let card = document.getElementById(cardId);
+
+        if (!card) {
+            const container = document.createElement('div');
+            container.id = cardId;
+            container.style.position = 'fixed';
+            container.style.top = '-9999px';
+            container.style.left = '-9999px';
+            container.style.width = '400px';
+            container.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)';
+            container.style.padding = '24px';
+            container.style.borderRadius = '16px';
+            container.style.color = 'white';
+            container.style.fontFamily = 'Arial, sans-serif';
+            container.style.border = '1px solid #334155';
+
+            // NOTE: Emojis removed as requested
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <div style="width: 48px; height: 48px; background: #06b6d4; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;">SP</div>
+                    <div>
+                        <div style="font-size: 14px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">New Task Assigned</div>
+                        <div style="font-size: 18px; font-weight: bold; color: white;">SP IT Technologies</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Task Title</div>
+                    <div style="font-size: 20px; font-weight: bold; color: white; line-height: 1.4;">${task.title}</div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Priority</div>
+                        <div style="font-size: 14px; color: ${task.priority === 'High' ? '#f87171' : task.priority === 'Medium' ? '#facc15' : '#4ade80'}; font-weight: bold;">${task.priority}</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Deadline</div>
+                        <div style="font-size: 14px; color: white; font-weight: bold;">${task.deadline ? new Date(task.deadline).toLocaleDateString() : 'N/A'}</div>
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #334155; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 12px; color: #94a3b8;">Assigned To: <span style="color: white; font-weight: bold;">${task.assignedTo && task.assignedTo[0] ? task.assignedTo[0].fullName : 'Unassigned'}</span></div>
+                    <div style="font-size: 10px; color: #64748b;">Generated by SP IT System</div>
+                </div>
+            `;
+
+            document.body.appendChild(container);
+            card = container;
+        }
+
+        try {
+            // 2. Generate Image
+            const canvas = await html2canvas(card, {
+                backgroundColor: null,
+                scale: 2
+            });
+
+            // 3. Copy to Clipboard
+            canvas.toBlob(async (blob) => {
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+
+                    // 4. Prepare Text Message (Clean Text - No Emojis)
+                    const message = `Hello! *New Task Assigned*\n\n` +
+                        `*Title:* ${task.title}\n` +
+                        `*Priority:* ${task.priority}\n` +
+                        `*Deadline:* ${task.deadline ? new Date(task.deadline).toLocaleDateString() : 'N/A'}\n\n` +
+                        `*View Task:* https://spittechnologies.vercel.app/employee/tasks\n\n` +
+                        `_Please check your dashboard for more details._`;
+
+                    // 5. Open WhatsApp (Encode URI Component is safe now without special chars)
+                    const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+
+                    // 6. Notify User (Non-blocking Toast)
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 5000);
+
+                    window.open(url, '_blank');
+
+                } catch (clipErr) {
+                    console.error('Clipboard failed:', clipErr);
+                    // Fallback if clipboard fails: Just open text
+                    const message = `Hello! *New Task Assigned*\n\n` +
+                        `*Title:* ${task.title}\n` +
+                        `_Please check your dashboard for more details._`;
+                    const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+                    window.open(url, '_blank');
+                }
+                document.body.removeChild(card); // Cleanup
+            });
+
+        } catch (err) {
+            console.error('Error handling WhatsApp share:', err);
+            if (card) document.body.removeChild(card);
         }
     };
 
@@ -181,6 +294,14 @@ const Tasks = () => {
                                 <td className="p-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
+                                            onClick={(e) => handleWhatsAppShare(task, e)}
+                                            className="p-1.5 hover:bg-white/10 rounded-lg text-green-400 hover:text-green-300 transition-colors"
+                                            title="Send WhatsApp Notification (Image + Text)"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                                        </button>
+
+                                        <button
                                             onClick={(e) => openEditModal(task, e)}
                                             className="p-1.5 hover:bg-white/10 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
                                             title="Edit Task"
@@ -220,6 +341,19 @@ const Tasks = () => {
 
     return (
         <div>
+            {/* TOAST NOTIFICATION */}
+            {showToast && (
+                <div className="fixed bottom-10 right-10 bg-slate-800 border border-green-500/50 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-4 animate-bounce">
+                    <div className="bg-green-500/20 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-green-400">Image Copied!</h4>
+                        <p className="text-sm text-gray-300">Just press <strong className="text-white">Ctrl + V</strong> in WhatsApp.</p>
+                    </div>
+                </div>
+            )}
+
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Task Management</h1>
                 <div className="flex items-center gap-3">

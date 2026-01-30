@@ -3,10 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { LogOut, Home, UserCheck, CheckSquare, FileText, Package } from 'lucide-react';
 import clsx from 'clsx';
 import Notifications from '../components/ui/Notifications';
+import { useState } from 'react';
+import EmployeeProfileModal from '../components/profile/EmployeeProfileModal';
 
 const EmployeeLayout = () => {
     const { logout, user } = useAuth();
     const location = useLocation();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     const menuItems = [
         { path: '/employee', icon: Home, label: 'Dashboard' },
@@ -48,10 +51,21 @@ const EmployeeLayout = () => {
                 </nav>
 
                 <div className="p-4 border-t border-white/10">
-                    <div className="flex items-center gap-3 mb-4 px-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
-                            {user?.username?.substring(0, 2).toUpperCase()}
-                        </div>
+                    <div
+                        onClick={() => setIsProfileOpen(true)}
+                        className="flex items-center gap-3 mb-4 px-2 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors"
+                    >
+                        {user?.profilePicture ? (
+                            <img
+                                src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
+                                alt="Profile"
+                                className="w-8 h-8 rounded-full object-cover border border-cyan-500"
+                            />
+                        ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
+                                {user?.username?.substring(0, 2).toUpperCase()}
+                            </div>
+                        )}
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-white truncate">{user?.fullName}</p>
                             <p className="text-xs text-gray-400 truncate">{user?.designation}</p>
@@ -99,6 +113,8 @@ const EmployeeLayout = () => {
                     <Outlet />
                 </div>
             </main>
+
+            <EmployeeProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
         </div>
     );
 };

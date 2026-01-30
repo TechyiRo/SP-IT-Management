@@ -4,13 +4,79 @@ const auth = require('../middleware/auth');
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 
-// Debug Middleware
-router.use((req, res, next) => {
-    console.log(`[Tasks Router] ${req.method} ${req.originalUrl}`);
-    next();
+// ... (existing imports)
+
+// @route   POST api/tasks
+// @desc    Create a task (Admin)
+// ...
+router.post('/', auth, async (req, res) => {
+    try {
+        const newTask = new Task({
+            ...req.body,
+            assignedBy: req.user.id
+        });
+        const task = await newTask.save();
+
+        // Notify Assigned User via WhatsApp
+        if (task.assignedTo && task.assignedTo.length > 0) {
+            // ... (keep existing Notification model logic)
+            const notifications = task.assignedTo.map(userId => ({
+                recipient: userId,
+                message: `You have been assigned a new task: "${task.title}"`,
+                type: 'task_assigned',
+                relatedId: task._id,
+                onModel: 'Task'
+            }));
+            await Notification.insertMany(notifications);
+        }
+
+        res.json(task);
+    } catch (err) {
+        console.error('Error in task creation:', err);
+        res.status(500).send('Server Error');
+    }
 });
 
-// @route   GET api/tasks/me
+// @route   PUT api/tasks/:id
+// ...
+router.put('/:id', auth, async (req, res) => {
+    try {
+        let task = await Task.findById(req.params.id);
+        if (!task) return res.status(404).json({ msg: 'Task not found' });
+
+        const originalStatus = task.status;
+
+        // ... (update fields)
+        if (req.body.status) task.status = req.body.status;
+        // ... (other fields)
+        if (req.body.progress) task.progress = req.body.progress;
+        if (req.body.assignedTo) task.assignedTo = req.body.assignedTo;
+        if (req.body.title) task.title = req.body.title;
+        if (req.body.description) task.description = req.body.description;
+        if (req.body.deadline) task.deadline = req.body.deadline;
+        if (req.body.priority) task.priority = req.body.priority;
+        if (req.body.adminNotes) task.adminNotes = req.body.adminNotes;
+
+        await task.save();
+
+        // Notify on Status Change
+        if (req.body.status && req.body.status !== originalStatus && task.assignedTo && task.assignedTo.length > 0) {
+            const notifications = task.assignedTo.map(userId => ({
+                recipient: userId,
+                message: `Task "${task.title}" status updated to ${task.status}`,
+                type: 'task_updated',
+                relatedId: task._id,
+                onModel: 'Task'
+            }));
+            await Notification.insertMany(notifications);
+        }
+
+        res.json(task);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 // @desc    Get tasks assigned to me
 // @access  Private
 router.get('/me', auth, async (req, res) => {
@@ -29,7 +95,7 @@ router.get('/me', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
     if (req.user.role !== 'admin') return res.status(403).json({ msg: 'Access denied' });
     try {
-        const tasks = await Task.find().populate('assignedTo', 'fullName profilePicture').populate('assignedBy', 'fullName');
+        const tasks = await Task.find().populate('assignedTo', 'fullName profilePicture phone').populate('assignedBy', 'fullName');
         res.json(tasks);
     } catch (err) {
         console.error(err.message);
