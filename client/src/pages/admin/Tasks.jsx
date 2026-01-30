@@ -114,7 +114,7 @@ const Tasks = () => {
     ) : [];
 
     const renderListView = () => (
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-x-auto">
             <table className="w-full text-left">
                 <thead className="bg-white/5 border-b border-white/10 uppercase text-xs text-gray-400">
                     <tr>

@@ -93,7 +93,7 @@ const AdminLayout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative flex flex-col w-full">
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 relative flex flex-col w-full">
                 {/* Mobile Header */}
                 <div className="md:hidden mb-4 flex items-center justify-between glass-card p-4 rounded-xl">
                     <div className="flex items-center gap-3">
