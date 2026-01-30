@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SP IT Management System - Client Folder Structure</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #fff;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #e67e22;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            page-break-inside: avoid;
+        }
+
+        h2 {
+            color: #d35400;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analogy {
+            background-color: #fdf2e9;
+            padding: 10px 15px;
+            border-left: 4px solid #e67e22;
+            margin: 15px 0;
+            font-style: italic;
+            color: #5d4037;
+        }
+
+        .folder-name {
+            font-family: Consolas, monospace;
+            background-color: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.8em;
+            color: #7f8c8d;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: white;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-core {
+            background-color: #e74c3c;
+        }
+
+        .badge-config {
+            background-color: #3498db;
+        }
+
+        .badge-asset {
+            background-color: #27ae60;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Client Folder Structure Analysis<br><span style="font-size: 0.6em; color: #7f8c8d;">Frontend Architecture
+            Breakdown (Marathi)</span></h1>
+
+    <p style="text-align: center;">तुमच्या <strong>Client</strong> (Frontend) फोल्डरची संपूर्ण माहिती खालीलप्रमाणे
+        "विश्लेषणात्मक स्वरूपात" (Analytical Format) दिली आहे.</p>
+
+    <!-- 1. Node Modules -->
+    <div class="section">
+        <h2>📁 १. <span class="folder-name">client/node_modules</span></h2>
+        <div class="analogy">
+            🏠 <strong>उपमा:</strong> सामानाचे मोठे गोदाम (Warehouse)
+        </div>
+        <ul>
+            <li><strong>काय आहे:</strong> तुमच्या प्रोजेक्टला चालण्यासाठी लागणाऱ्या सर्व "तयार गोष्टी" (Libraries) उदा.
+                React, Tailwind इथे साठवलेल्या असतात.</li>
+            <li><strong>महत्त्व:</strong> हा फोल्डर आपण स्वतः बनवत नाही, <code>npm install</code> केल्यावर तो आपोआप
+                भरतो.</li>
+            <li><strong>टीप:</strong> हा आकाराने खूप मोठा असतो, म्हणून गिटहबवर (GitHub) कधीच अपलोड करत नाहीत.</li>
+        </ul>
+    </div>
+
+    <!-- 2. Public -->
+    <div class="section">
+        <h2>📁 २. <span class="folder-name">client/public</span></h2>
+        <div class="analogy">
+            🏠 <strong>उपमा:</strong> घराची पाटी आणि मुख्य प्रवेशद्वार
+        </div>
+        <ul>
+            <li><strong>काय आहे:</strong> अशा फाईल्स ज्या बदलत नाहीत (Static) आणि थेट जगाला दिसतात. उदा.
+                <code>favicon.ico</code> (वेबसाईटचा आयकॉन).</li>
+            <li><strong>विशेष:</strong> यातील फाईल्सवर React कोणतीही प्रक्रिया करत नाही, त्या जशाच्या तशा वापरल्या
+                जातात.</li>
+        </ul>
+    </div>
+
+    <!-- 3. Dist -->
+    <div class="section">
+        <h2>📁 ३. <span class="folder-name">client/dist</span></h2>
+        <div class="analogy">
+            🏠 <strong>उपमा:</strong> पूर्ण पॅक केलेले, राहण्यासाठी तयार घर
+        </div>
+        <ul>
+            <li><strong>काय आहे:</strong> जेव्हा प्रोजेक्ट पूर्ण होतो आणि तुम्ही <code>npm run build</code> कमांड देता,
+                तेव्हा सर्व कोड कॉम्प्रेस होऊन इथे येतो.</li>
+            <li><strong>उपयोग:</strong> वेबसाईट इंटरनेटवर लाईव्ह (Live) करण्यासाठी फक्त हाच फोल्डर वापरला जातो.</li>
+        </ul>
+    </div>
+
+    <!-- 4. SRC (Main) -->
+    <div class="section">
+        <h2>📁 ४. <span class="folder-name">client/src</span> <span class="badge badge-core">महत्वाचे (Core)</span></h2>
+        <div class="analogy">
+            🏠 <strong>उपमा:</strong> स्वयंपाकघर (Kitchen) - जिथे सर्व मुख्य काम चालते
+        </div>
+        <p>हा तुमच्या प्रोजेक्टचा सर्वात महत्त्वाचा भाग आहे. याचे पोट-विभाग खालीलप्रमाणे आहेत:</p>
+
+        <div style="margin-left: 20px; border-left: 2px solid #bdc3c7; padding-left: 15px;">
+            <h3>A. <span class="folder-name">src/api</span> (संपर्क प्रमुख)</h3>
+            <p>इथे <code>axios.js</code> असते. फ्रंटएंडला बॅकएंडशी (Server) बोलण्यासाठी लागणारे सर्व कॉल इथून जातात.</p>
+
+            <h3>B. <span class="folder-name">src/assets</span> (सजावटीचे सामान)</h3>
+            <p>इमेजेस, लोगो आणि स्टाईल फाईल्स इथे ठेवल्या जातात.</p>
+
+            <h3>C. <span class="folder-name">src/components</span> (विटा / Lego Blocks)</h3>
+            <p>असे छोटे तुकडे जे पुन्हा पुन्हा वापरता येतात. उदा. <code>Button</code>, <code>Navbar</code>. एकदाच
+                बनवायचे आणि पूर्ण अ‍ॅपमध्ये अनेकदा वापरायचे.</p>
+
+            <h3>D. <span class="folder-name">src/context</span> (Main Power Supply)</h3>
+            <p>पूर्ण घराला वीज पुरवठा करण्यासारखे हे काम करते. "युजर लॉगिन आहे का?" ही माहिती इथून सर्व पेजेसना पुरवली
+                जाते.</p>
+
+            <h3>E. <span class="folder-name">src/layouts</span> (घराचा साचा / Framework)</h3>
+            <p>वेबसाईटची जी रचना फिक्स असते (उदा. डावीकडील मेनू आणि वरची पट्टी), ती इथे असते. फक्त मधला भाग बदलतो.</p>
+
+            <h3>F. <span class="folder-name">src/pages</span> (घरातील खोल्या / Rooms)</h3>
+            <p>मुख्य स्क्रीन्स ज्या युजरला दिसतात:
+            <ul>
+                <li><code>pages/admin</code>: मालकाची केबिन (Admin Dashboard)</li>
+                <li><code>pages/employee</code>: कामगारांची क्यूबिकल (Employee Task Board)</li>
+            </ul>
+            </p>
+        </div>
+    </div>
+
+    <!-- 5. Root Files -->
+    <div class="section">
+        <h2>📄 ५. बाहेरच्या महत्त्वाच्या फाईल्स</h2>
+        <ul>
+            <li><strong><span class="folder-name">App.jsx</span> (Main Switchboard):</strong> कोणता रस्ता (URL) कोणत्या
+                खोलीत (Page) जातो, हे इथे ठरवलेले असते.</li>
+            <li><strong><span class="folder-name">main.jsx</span> (Start Button):</strong> React अ‍ॅप सुरू करण्याची ही
+                कळ आहे.</li>
+            <li><strong><span class="folder-name">package.json</span> (Recipe Book):</strong> प्रोजेक्ट बनवण्यासाठी काय
+                काय वापरले आहे (React, Axios, etc.), त्याची यादी इथे असते.</li>
+            <li><strong><span class="folder-name">tailwind.config.js</span> (Painting Rules):</strong> वेबसाईटचे रंग आणि
+                डिझाइनचे नियम इथे असतात.</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        Generated by Antigravity | SP IT Management System | 2026
+    </div>
+
+</body>
+
+</html>

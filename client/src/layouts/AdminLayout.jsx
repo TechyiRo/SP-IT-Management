@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, UserCheck, CheckSquare, Package, Building2, FileText, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, CheckSquare, Package, Building2, FileText, LogOut, Menu, X, Warehouse, Truck } from 'lucide-react';
 import clsx from 'clsx';
 
 const AdminLayout = () => {
@@ -16,6 +16,8 @@ const AdminLayout = () => {
         { path: '/admin/tasks', icon: CheckSquare, label: 'Task Management' },
         { path: '/admin/products', icon: Package, label: 'Products' },
         { path: '/admin/companies', icon: Building2, label: 'Companies' },
+        { path: '/admin/inventory', icon: Warehouse, label: 'Inventory' },
+        { path: '/admin/tracking', icon: Truck, label: 'Tracking' },
         { path: '/admin/work-details', icon: FileText, label: 'Work Details' },
     ];
 
@@ -106,7 +108,7 @@ const AdminLayout = () => {
                     </button>
                 </div>
 
-                <div className="glass-card min-h-[calc(100vh-8rem)] md:min-h-full p-6 relative z-10 animate-fade-in-up">
+                <div className="min-h-[calc(100vh-8rem)] md:min-h-full relative z-10 animate-fade-in-up">
                     <Outlet />
                 </div>
             </main>

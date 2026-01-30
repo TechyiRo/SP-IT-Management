@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SP IT Management System - Codebase Documentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #fff;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+
+        h2 {
+            color: #2980b9;
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 5px solid #3498db;
+        }
+
+        .file-path {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e74c3c;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .purpose {
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background-color: #dfe6e9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            color: #d63031;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.8em;
+            color: #7f8c8d;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>SP IT Management System<br><span style="font-size: 0.6em; color: #7f8c8d;">कोडकथा (Educational
+            Documentation)</span></h1>
+
+    <p style="text-align: center; font-style: italic;">हा दस्तऐवज तुमच्या प्रोजेक्टमधील महत्त्वाच्या फाइल्स, त्यांचा
+        उपयोग आणि कार्यपद्धती सविस्तरपणे मराठीत समजावून सांगतो.</p>
+    <hr>
+
+    <!-- 1. Tasks.jsx -->
+    <div class="section">
+        <h2>१. Employee Tasks Page</h2>
+        <span class="file-path">client/src/pages/employee/Tasks.jsx</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>हे कर्मचाऱ्यांसाठी (Employee) एक डॅशबोर्ड पेज आहे जिथे त्यांना नेमून दिलेली सर्व कामे (Tasks) दिसतात.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>React Component:</strong> हे पेज React फंक्शनल कंपोनंट म्हणून बनवले आहे w.</li>
+                <li><strong>State Management (<code>useState</code>):</strong> <code>tasks</code> नावाचा एक व्हेरिएबल
+                    तयार केला आहे जो सर्व कामांची यादी साठवून ठेवतो.</li>
+                <li><strong>API Call (<code>useEffect</code>):</strong> पेज लोड होताच, हे <code>api/tasks/me</code> या
+                    पत्त्यावर जाऊन सर्व्हरकडून "माझी कामे कोणती?" अशी विचारणा करते.</li>
+                <li><strong>Rendering List (<code>map</code>):</strong> आलेल्या कामांच्या यादीतून एकेक काम घेऊन त्याचे
+                    सुंदर कार्ड (Card) बनवले जाते.</li>
+                <li><strong>Visual Feedback:</strong> जर कामे नसतील, तर "No tasks assigned" असा संदेश दाखवला जातो आणि
+                    Priority नुसार लाल, पिवळा किंवा हिरवा रंग दिला जातो.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 2. Attendance.jsx -->
+    <div class="section">
+        <h2>२. Employee Attendance Page</h2>
+        <span class="file-path">client/src/pages/employee/Attendance.jsx</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>हे पेज कर्मचाऱ्यांच्या उपस्थितीसाठी आहे. चेक-इन (येणे), चेक-आउट (जाणे) आणि रजेची विनंती (Leave Request)
+                करण्यासाठी याचा वापर होतो.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>User Interface (UI):</strong> यात <code>glass-card</code> इफेक्ट वापरून मॉडर्न लूक दिला आहे.
+                    घड्याळ (Clock) सतत चालू राहण्यासाठी <code>setInterval</code> वापरले आहे.</li>
+                <li><strong>Logic (<code>getStatusDisplay</code>):</strong> हे फंक्शन चेक करते की कर्मचारी आज आला आहे
+                    का? जर आला असेल तर 'Present', नसेल तर 'Mark Presence' असे बटण दाखवते.</li>
+                <li><strong>Handshake with Server:</strong> जेव्हा तुम्ही "Request Check-In" दाबता, तेव्हा
+                    <code>axios.post</code> द्वारे सर्व्हरला विनंती जाते.</li>
+                <li><strong>Modules Integration:</strong> यात 'Half Day' आणि 'Leave' चे फॉर्म्स देखील आहेत जे एकाच
+                    पेजवरून सर्व प्रकारच्या सुट्ट्यांचे व्यवस्थापन करतात.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 3. Dashboard Routes -->
+    <div class="section">
+        <h2>३. Admin Dashboard Routes</h2>
+        <span class="file-path">server/routes/dashboard.js</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>अ‍ॅडमिनच्या डॅशबोर्डवर दिसणारे आकडे (Statistics) आणि ग्राफ (Charts) तयार करण्याचे काम ही फाईल करते.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>Data Aggregation:</strong> ही एक स्मार्ट फाईल आहे जी एकाच वेळी <code>User</code>,
+                    <code>Attendance</code>, आणि <code>Task</code> या तिन्ही मॉडेल्समधून डेटा गोळा करते.</li>
+                <li><strong>Real-time Stats:</strong> "आज किती लोक हजर आहेत?" हे शोधण्यासाठी ती आजच्या तारखेचे सर्व
+                    रेकॉर्ड्स मोजते.</li>
+                <li><strong>Graph Generation:</strong> गेल्या ७ दिवसांचा इतिहास (History) काढण्यासाठी यात एक लूप (Loop)
+                    फिरवला जातो, जो प्रत्येक दिवसाचे हजर कर्मचारी मोजतो. यामुळे डॅशबोर्डवर चढ-उतार दाखवणारा ग्राफ दिसतो.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 4. User Routes -->
+    <div class="section">
+        <h2>४. User Management Routes</h2>
+        <span class="file-path">server/routes/users.js</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>ही फाईल म्हणजे कंपनीचे "HR डिपार्टमेंट" आहे. कर्मचाऱ्यांची भरती (Create), माहिती बदलणे (Update) किंवा
+                काढून टाकणे (Delete) हे सर्व इथे चालते.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>CRUD Operations:</strong> Create, Read, Update, Delete या चारही क्रिया इथे परिभाषित केल्या
+                    आहेत.</li>
+                <li><strong>Security Check:</strong> प्रत्येक क्रियेपूर्वी <code>req.user.role !== 'admin'</code> हे
+                    तपासले जाते. म्हणजे साधा कर्मचारी स्वतःचा पगार किंवा रोल बदलू शकत नाही, फक्त अ‍ॅडमिनच करू शकतो.</li>
+                <li><strong>Password Security:</strong> नवीन कर्मचारी बनवताना त्याचा पासवर्ड <code>bcrypt</code> वापरून
+                    'Hash' (कूटभाषेत) केला जातो, जेणेकरून तो कोणालाही वाचता येऊ नये.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 5. Auth Middleware -->
+    <div class="section">
+        <h2>५. Authentication Middleware</h2>
+        <span class="file-path">server/middleware/auth.js</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>हा प्रोजेक्टचा "सुरक्षा रक्षक" (Security Guard) आहे. गेटपासाशिवाय (Token) कोणालाही आत जाऊ न देणे हे याचे
+                काम आहे.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>Token Verification:</strong> जेव्हा कोणी सर्व्हरकडे माहिती मागायला येते, तेव्हा हा कोड
+                    त्यांच्याकडील <code>x-auth-token</code> तपासतो.</li>
+                <li><strong>JWT (JSON Web Token):</strong> हे टोकन डिकोड (Decode) करून त्यातून वापरकर्त्याची ओळख (ID और
+                    Role) काढली जाते.</li>
+                <li><strong>Access Control:</strong> जर टोकन बनावट असेल किंवा मुदत संपली असेल (Expired), तर
+                    <code>401 Unauthorized</code> एरर देऊन त्यांना बाहेरच रोखले जाते.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 6. Product Model -->
+    <div class="section">
+        <h2>६. Product Schema</h2>
+        <span class="file-path">server/models/Product.js</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>ऑफिसमधील वस्तू (Assets) जसे की लॅपटॉप, माउस यांची माहिती डेटाबेसमध्ये कशी साठवायची, याचा हा आराखडा
+                (Schema) आहे.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>Data Structure:</strong> वस्तूचे नाव, सिरीयल नंबर (Unique), आणि स्थिती (Status) यासाठीचे
+                    नियम (Validation) इथे ठरवले आहेत.</li>
+                <li><strong>Relationships:</strong> <code>assignedTo</code> हे फील्ड वापरून या वस्तूला एका वापरकर्त्याशी
+                    (User) जोडले जाते. म्हणजे "हा लॅपटॉप कोणाकडे आहे?" हे लगेच समजते.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 7. Fix Indexes Script -->
+    <div class="section">
+        <h2>७. Fix Indexes Script</h2>
+        <span class="file-path">server/fix_indexes.js</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>डेटाबेसमधील तांत्रिक अडचणी दूर करण्यासाठी ही एक 'रिपेअरिंग' स्क्रिप्ट आहे.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>Problem Solver:</strong> कधीकधी डेटाबेसमध्ये जुने नियम (Indexes) अडकतात ज्यामुळे नवीन डेटा
+                    भरताना एरर येते.</li>
+                <li><strong>One-time Use:</strong> ही फाईल <code>dropIndex</code> कमांड वापरून ती अडचण मुळापासून काढून
+                    टाकते. ही रोज वापरली जात नाही, फक्त इमर्जन्सीला वापरली जाते.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 8. Clean Ghosts Script -->
+    <div class="section">
+        <h2>८. Clean Ghosts Script</h2>
+        <span class="file-path">server/clean_ghosts.js</span>
+        <div class="content">
+            <div class="purpose">उद्देश (Purpose):</div>
+            <p>सिस्टीममधील कचरा (Junk Data) साफ करणारी ही फाईल आहे.</p>
+
+            <div class="purpose" style="margin-top: 15px;">शैक्षणिक विश्लेषण (Educational Description):</div>
+            <ul>
+                <li><strong>Cleanup:</strong> जर एखादा कर्मचारी कंपनी सोडून गेला आणि त्याचा डेटा डिलीट झाला, तरी कधीकधी
+                    त्याची जुनी हजेरी (Attendance) तशीच राहते, जिला "Ghost Record" म्हणतात.</li>
+                <li><strong>Logic:</strong> ही स्क्रिप्ट अशा सर्व बेवारस रेकॉर्ड्सना शोधून <code>deleteMany</code>
+                    द्वारे नष्ट करते, जेणेकरून रिपोर्ट्स अचूक मिळतील.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        Generated by Antigravity | SP IT Management System | 2026
+    </div>
+
+</body>
+
+</html>

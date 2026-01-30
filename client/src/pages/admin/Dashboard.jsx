@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { Users, UserCheck, CheckSquare, AlertCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalEmployees: 0,
@@ -29,8 +31,11 @@ const AdminDashboard = () => {
         }
     };
 
-    const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-        <div className="glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+    const StatCard = ({ title, value, icon: Icon, color, trend, trendColor = 'text-emerald-400 bg-emerald-500/10', link }) => (
+        <div
+            onClick={() => link && navigate(link)}
+            className={`glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 h-full flex flex-col justify-between ${link ? 'cursor-pointer' : ''}`}
+        >
             <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
                 <Icon className="w-24 h-24" />
             </div>
@@ -40,7 +45,7 @@ const AdminDashboard = () => {
                 </div>
                 <h3 className="text-gray-400 text-sm font-medium mb-1">{title}</h3>
                 <div className="text-3xl font-bold text-white mb-2">{loading ? '...' : value}</div>
-                <span className="text-emerald-400 text-xs font-medium bg-emerald-500/10 px-2 py-1 rounded-lg">
+                <span className={`text-xs font-medium px-2 py-1 rounded-lg ${trendColor}`}>
                     {trend}
                 </span>
             </div>
@@ -67,6 +72,8 @@ const AdminDashboard = () => {
                     icon={Users}
                     color="bg-purple-500"
                     trend="Registered Staff"
+                    trendColor="text-purple-400 bg-purple-500/10"
+                    link="/admin/users"
                 />
                 <StatCard
                     title="Present Today"
@@ -74,6 +81,8 @@ const AdminDashboard = () => {
                     icon={UserCheck}
                     color="bg-emerald-500"
                     trend={`${stats.totalEmployees ? Math.round((stats.presentToday / stats.totalEmployees) * 100) : 0}% Attendance Rate`}
+                    trendColor="text-emerald-400 bg-emerald-500/10"
+                    link="/admin/attendance"
                 />
                 <StatCard
                     title="Active Tasks"
@@ -81,6 +90,8 @@ const AdminDashboard = () => {
                     icon={CheckSquare}
                     color="bg-blue-500"
                     trend="In Progress"
+                    trendColor="text-blue-400 bg-blue-500/10"
+                    link="/admin/tasks"
                 />
                 <StatCard
                     title="Pending Requests"
@@ -88,13 +99,15 @@ const AdminDashboard = () => {
                     icon={AlertCircle}
                     color="bg-amber-500"
                     trend="Requires Action"
+                    trendColor="text-amber-400 bg-amber-500/10"
+                    link="/admin/attendance"
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="glass-card p-6 lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
+                <div className="glass-card p-6 lg:col-span-3 h-full flex flex-col">
                     <h3 className="text-lg font-bold mb-6">Attendance & Task Trends (Last 7 Days)</h3>
-                    <div className="h-80">
+                    <div className="flex-1 min-h-[320px]">
                         {loading ? (
                             <div className="flex items-center justify-center h-full text-gray-500">Loading Chart...</div>
                         ) : (
@@ -125,23 +138,23 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="glass-card p-6">
+                <div className="glass-card p-6 h-full flex flex-col">
                     <h3 className="text-lg font-bold mb-6">Recent Activity</h3>
-                    <div className="space-y-6">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
                         {stats.recentActivity.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No recent activity</p>
+                            <div className="h-full flex items-center justify-center text-gray-500 text-sm">No recent activity</div>
                         ) : (
                             stats.recentActivity.map((task) => (
-                                <div key={task._id} className="flex gap-4">
+                                <div key={task._id} className="flex gap-4 group">
                                     <div className="flex-none pt-1">
-                                        <div className={`w-2 h-2 rounded-full ring-4 ring-opacity-20 ${task.status === 'Completed' ? 'bg-emerald-500 ring-emerald-500' :
+                                        <div className={`w-2 h-2 rounded-full ring-4 ring-opacity-20 transition-all group-hover:ring-opacity-40 ${task.status === 'Completed' ? 'bg-emerald-500 ring-emerald-500' :
                                             task.status === 'In Progress' ? 'bg-blue-500 ring-blue-500' :
                                                 'bg-yellow-500 ring-yellow-500'
                                             }`}></div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-gray-300">New Task: <span className="text-white font-medium">{task.title}</span></p>
-                                        <p className="text-xs text-gray-500 mt-1">Assigned to: {task.assignedTo?.map(u => u.fullName).join(', ') || 'Unassigned'}</p>
+                                    <div className="min-w-0">
+                                        <p className="text-sm text-gray-300 truncate">New Task: <span className="text-white font-medium">{task.title}</span></p>
+                                        <p className="text-xs text-gray-500 mt-1 truncate">By: {task.assignedTo?.map(u => u.fullName).join(', ') || 'Unassigned'}</p>
                                     </div>
                                 </div>
                             ))

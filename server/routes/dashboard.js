@@ -35,11 +35,17 @@ router.get('/stats', auth, async (req, res) => {
 
         // 4. Pending Requests (Aggregation of all pending actions)
         // We can query attendance records that have ANY pending status
+        // 4. Pending Requests (Strict Aggregation)
+        // Only count valid requests (ignoring ghost defaults)
         const pendingAttendance = await Attendance.countDocuments({
             $or: [
                 { 'checkIn.status': 'Pending' },
-                { 'checkOut.status': 'Pending' },
-                { 'halfDay.status': 'Pending' }
+                // CheckOut is pending ONLY if time is present
+                { 'checkOut.status': 'Pending', 'checkOut.time': { $exists: true } },
+                // HalfDay is pending ONLY if explicitly requested
+                { 'halfDay.status': 'Pending', 'halfDay.isRequested': true },
+                // Leave is pending ONLY if explicitly requested
+                { 'leave.status': 'Pending', 'leave.isRequested': true }
             ]
         });
 

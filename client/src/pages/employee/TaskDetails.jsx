@@ -4,7 +4,7 @@ import api, { BASE_URL } from '../../api/axios';
 import {
     ArrowLeft, Clock, Calendar, CheckSquare, MessageSquare,
     FileText, User, Flag, Send, AlertCircle, Briefcase, Layers,
-    CheckCircle, Circle, Upload, Paperclip, ChevronRight, History, Play, Check
+    CheckCircle, Circle, Upload, Paperclip, ChevronRight, History, Play, Check, Plus, Trash2, X
 } from 'lucide-react';
 
 export default function TaskDetails() {
@@ -14,6 +14,10 @@ export default function TaskDetails() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('workflow'); // Default to workflow
     const [statusUpdating, setStatusUpdating] = useState(false);
+
+    // Dynamic Steps State
+    const [stepsList, setStepsList] = useState([]);
+    const [currentStep, setCurrentStep] = useState('');
 
     // Workflow Form State
     const [workflowForm, setWorkflowForm] = useState({
@@ -44,12 +48,47 @@ export default function TaskDetails() {
         }
     };
 
+    const handleAddStep = (e) => {
+        e.preventDefault();
+        if (!currentStep.trim()) return;
+        setStepsList([...stepsList, currentStep]);
+        setCurrentStep('');
+    };
+
+    const handleRemoveStep = (index) => {
+        const newSteps = [...stepsList];
+        newSteps.splice(index, 1);
+        setStepsList(newSteps);
+    };
+
     const handleWorkflowSubmit = async (e) => {
         e.preventDefault();
         try {
             const formData = new FormData();
+
+            // Construct HTML for Steps Performed
+            let stepsHtml = '';
+            if (stepsList.length > 0) {
+                stepsHtml = '<div class="space-y-2">';
+                stepsList.forEach((step, idx) => {
+                    const colorClass = idx % 2 === 0 ? 'text-cyan-400' : 'text-purple-400';
+                    const bgClass = idx % 2 === 0 ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-purple-500/10 border-purple-500/20';
+                    stepsHtml += `
+                        <div class="flex gap-3 p-3 rounded-lg border ${bgClass}">
+                            <span class="font-bold whitespace-nowrap ${colorClass}">Step ${idx + 1}:</span>
+                            <span class="text-gray-300">${step}</span>
+                        </div>
+                    `;
+                });
+                stepsHtml += '</div>';
+            }
+
             Object.keys(workflowForm).forEach(key => {
-                if (workflowForm[key]) formData.append(key, workflowForm[key]);
+                if (key === 'stepsPerformed') {
+                    if (stepsHtml) formData.append('stepsPerformed', stepsHtml);
+                } else if (workflowForm[key]) {
+                    formData.append(key, workflowForm[key]);
+                }
             });
             files.forEach(file => formData.append('attachments', file));
 
@@ -65,6 +104,7 @@ export default function TaskDetails() {
                 remark: '',
                 status: ''
             });
+            setStepsList([]);
             setFiles([]);
             // alert('Update logged successfully');
         } catch (err) {
@@ -207,25 +247,55 @@ export default function TaskDetails() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
+                                    <div className="h-full flex flex-col">
                                         <label className="text-sm text-gray-400 block mb-1">Steps Performed</label>
-                                        <textarea className="glass-input w-full h-24 text-xs"
-                                            value={workflowForm.stepsPerformed}
-                                            onChange={e => setWorkflowForm({ ...workflowForm, stepsPerformed: e.target.value })}
-                                            placeholder="- Step 1&#10;- Step 2"
-                                        />
+                                        <div className="flex gap-2 mb-2">
+                                            <input
+                                                type="text"
+                                                className="glass-input flex-1"
+                                                placeholder="Add a step..."
+                                                value={currentStep}
+                                                onChange={e => setCurrentStep(e.target.value)}
+                                                onKeyDown={e => e.key === 'Enter' && handleAddStep(e)}
+                                            />
+                                            <button type="button" onClick={handleAddStep} className="p-2 bg-cyan-600 rounded-lg text-white hover:bg-cyan-500 transition-colors">
+                                                <Plus size={20} />
+                                            </button>
+                                        </div>
+
+                                        {/* Steps List Display */}
+                                        <div className="bg-slate-900/50 rounded-lg p-2 min-h-[160px] max-h-[300px] overflow-y-auto space-y-2 border border-white/10">
+                                            {stepsList.length === 0 ? (
+                                                <p className="text-gray-500 text-xs text-center mt-10 italic">No steps added yet.</p>
+                                            ) : (
+                                                stepsList.map((step, idx) => (
+                                                    <div key={idx} className="flex items-start gap-2 bg-white/5 p-2 rounded group animate-fade-in relative pr-8">
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${idx % 2 === 0 ? 'bg-cyan-500/20 text-cyan-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                                                            Step {idx + 1}
+                                                        </span>
+                                                        <p className="text-sm text-gray-300 break-all">{step}</p>
+                                                        <button
+                                                            onClick={() => handleRemoveStep(idx)}
+                                                            className="absolute right-2 top-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
-                                    <div>
+
+                                    <div className="h-full flex flex-col">
                                         <label className="text-sm text-gray-400 block mb-1">Problem Found</label>
-                                        <textarea className="glass-input w-full h-24 text-xs"
+                                        <textarea className="glass-input w-full h-[210px] text-xs resize-none"
                                             value={workflowForm.problemFound}
                                             onChange={e => setWorkflowForm({ ...workflowForm, problemFound: e.target.value })}
-                                            placeholder="What was the root cause?"
+                                            placeholder=" Describe the root cause or problem found..."
                                         />
                                     </div>
                                 </div>
-
-                                <div>
+                                <div className="mt-12">
                                     <label className="text-sm text-gray-400 block mb-1">Configuration Changed (if any)</label>
                                     <textarea className="glass-input w-full h-16 text-xs"
                                         value={workflowForm.configurationChanged}
@@ -302,9 +372,15 @@ export default function TaskDetails() {
                                                 </div>
                                             )}
                                             {update.stepsPerformed && (
-                                                <div>
-                                                    <span className="text-xs text-gray-500 block uppercase tracking-wider">Steps</span>
-                                                    <pre className="whitespace-pre-wrap font-sans text-xs">{update.stepsPerformed}</pre>
+                                                <div className="mt-2">
+                                                    <span className="text-xs text-gray-500 block uppercase tracking-wider mb-1">Steps</span>
+                                                    <div className="prose prose-invert prose-sm max-w-none bg-black/20 p-2 rounded border border-white/5" dangerouslySetInnerHTML={{ __html: update.stepsPerformed }} />
+                                                </div>
+                                            )}
+                                            {update.problemFound && (
+                                                <div className="mt-2">
+                                                    <span className="text-xs text-gray-500 block uppercase tracking-wider mb-1">Problem Found</span>
+                                                    <div className="prose prose-invert prose-sm max-w-none bg-black/20 p-2 rounded border border-white/5" dangerouslySetInnerHTML={{ __html: update.problemFound }} />
                                                 </div>
                                             )}
                                             {update.configurationChanged && (

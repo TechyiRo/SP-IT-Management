@@ -11,6 +11,8 @@ import Products from './pages/admin/Products';
 import Companies from './pages/admin/Companies';
 import WorkDetails from './pages/admin/WorkDetails';
 import AdminTaskDetails from './pages/admin/TaskDetails';
+import AdminInventory from './pages/admin/Inventory';
+import AdminTracking from './pages/admin/Tracking';
 
 // Placeholder Pages
 import EmployeeDashboard from './pages/employee/Dashboard';
@@ -60,6 +62,8 @@ const AppRoutes = () => {
         <Route path="products" element={<Products />} />
         <Route path="companies" element={<Companies />} />
         <Route path="work-details" element={<WorkDetails />} />
+        <Route path="inventory" element={<AdminInventory />} />
+        <Route path="tracking" element={<AdminTracking />} />
       </Route>
 
       {/* Employee Routes */}

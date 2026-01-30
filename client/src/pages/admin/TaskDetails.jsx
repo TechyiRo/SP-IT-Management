@@ -180,7 +180,13 @@ export default function TaskDetails() {
                                                             {update.stepsPerformed && (
                                                                 <div>
                                                                     <strong className="block text-gray-500 uppercase text-[10px] mb-1">Steps Performed</strong>
-                                                                    <pre className="font-sans whitespace-pre-wrap">{update.stepsPerformed}</pre>
+                                                                    <div className="prose prose-invert prose-sm max-w-none text-gray-300 bg-slate-900/50 p-2 rounded border border-white/5" dangerouslySetInnerHTML={{ __html: update.stepsPerformed }} />
+                                                                </div>
+                                                            )}
+                                                            {update.problemFound && (
+                                                                <div>
+                                                                    <strong className="block text-gray-500 uppercase text-[10px] mb-1">Problem Found</strong>
+                                                                    <div className="prose prose-invert prose-sm max-w-none text-gray-300 bg-slate-900/50 p-2 rounded border border-white/5" dangerouslySetInnerHTML={{ __html: update.problemFound }} />
                                                                 </div>
                                                             )}
                                                             {update.configurationChanged && (

@@ -37,10 +37,23 @@ const Attendance = () => {
     const processPendingRequests = (data) => {
         const pending = [];
         data.forEach(record => {
+            // Strict Validation: Only accept requests that have valid data (avoid schema defaults)
             if (record.checkIn?.status === 'Pending') pending.push({ ...record, type: 'checkIn' });
-            if (record.checkOut?.status === 'Pending') pending.push({ ...record, type: 'checkOut' });
-            if (record.halfDay?.status === 'Pending') pending.push({ ...record, type: 'halfDay' });
-            if (record.leave?.status === 'Pending') pending.push({ ...record, type: 'leave' });
+
+            // For CheckOut: Must have a timestamp
+            if (record.checkOut?.status === 'Pending' && record.checkOut?.time) {
+                pending.push({ ...record, type: 'checkOut' });
+            }
+
+            // For HalfDay: Must be explicitly requested
+            if (record.halfDay?.status === 'Pending' && record.halfDay?.isRequested) {
+                pending.push({ ...record, type: 'halfDay' });
+            }
+
+            // For Leave: Must be explicitly requested
+            if (record.leave?.status === 'Pending' && record.leave?.isRequested) {
+                pending.push({ ...record, type: 'leave' });
+            }
         });
         setPendingRequests(pending.sort((a, b) => new Date(b.date) - new Date(a.date)));
     };

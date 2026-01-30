@@ -10,7 +10,7 @@ const AttendanceSchema = new mongoose.Schema({
         status: {
             type: String,
             enum: ['Pending', 'Approved', 'Rejected'],
-            default: 'Pending'
+            // default: 'Pending' - Removed to prevent auto-request
         },
         remarks: { type: String } // Employee remark
     },
@@ -21,7 +21,7 @@ const AttendanceSchema = new mongoose.Schema({
         status: {
             type: String,
             enum: ['Pending', 'Approved', 'Rejected'],
-            default: 'Pending'
+            // default: 'Pending' - Removed to prevent auto-request
         },
         remarks: { type: String }
     },
