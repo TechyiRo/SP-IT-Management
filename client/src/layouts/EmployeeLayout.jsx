@@ -79,9 +79,9 @@ const EmployeeLayout = () => {
     ];
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden bg-vibrant-gradient md:bg-none">
             {/* Desktop Sidebar (visible on md+) */}
-            <aside className="fixed md:relative inset-y-0 left-0 z-50 w-64 glass-card m-0 md:m-4 md:mr-0 rounded-none md:rounded-2xl flex flex-col transition-transform duration-300 ease-in-out">
+            <aside className="fixed md:relative inset-y-0 left-0 z-50 w-64 glass-card m-0 md:m-4 md:mr-0 rounded-none md:rounded-2xl hidden md:flex flex-col transition-transform duration-300 ease-in-out">
                 <div className="p-6 border-b border-white/10 flex items-center gap-3">
                     <img src="/logo.png" alt="SP IT Logo" className="w-10 h-10 object-contain" />
                     <span className="font-bold text-lg tracking-wide">SP IT</span>
@@ -113,9 +113,9 @@ const EmployeeLayout = () => {
                         <div
                             title={gpsErrorMsg || (gpsStatus === 'active' ? "Your location is being shared securely." : "Status")}
                             className={`text-xs flex items-center gap-2 justify-center py-1 rounded border ${gpsStatus === 'active' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                gpsStatus === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                    gpsStatus === 'server-error' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                                        'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                    gpsStatus === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                        gpsStatus === 'server-error' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                            'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
                                 }`}
                         >
                             <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-green-500 animate-pulse' : gpsStatus.includes('error') ? 'bg-red-500' : 'bg-yellow-500 animate-ping'}`}></div>
@@ -153,34 +153,57 @@ const EmployeeLayout = () => {
                 </div>
             </aside>
 
-            {/* Mobile Bottom Nav */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-card m-0 rounded-b-none rounded-t-2xl z-50 flex justify-around p-4 border-t border-white/10">
-                {menuItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={clsx(
-                                "flex flex-col items-center gap-1 transition-colors",
-                                isActive ? "text-cyan-400" : "text-gray-500"
-                            )}
-                        >
-                            <Icon className={clsx("w-6 h-6", isActive && "animate-bounce")} />
-                            <span className="text-[10px]">{item.label}</span>
-                        </Link>
-                    );
-                })}
-                <button onClick={logout} className="flex flex-col items-center gap-1 text-red-400">
-                    <LogOut className="w-6 h-6" />
-                    <span className="text-[10px]">Logout</span>
-                </button>
+            {/* Mobile Bottom Nav (Floating Pill) */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+                <div className="nav-pill-mobile">
+                    {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={clsx(
+                                    "flex flex-col items-center gap-1 transition-all duration-300 relative",
+                                    isActive ? "text-white -translate-y-2 scale-110" : "text-white/60"
+                                )}
+                            >
+                                <div className={clsx("p-2 rounded-full", isActive && "bg-white/20 shadow-glow")}>
+                                    <Icon className={clsx("w-6 h-6", isActive && "animate-pulse")} />
+                                </div>
+                                <span className={clsx("text-[10px] font-medium transition-opacity", isActive ? "opacity-100" : "opacity-0 absolute -bottom-4")}>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                    <button onClick={logout} className="flex flex-col items-center gap-1 text-red-400/80 hover:text-red-400">
+                        <div className="p-2">
+                            <LogOut className="w-6 h-6" />
+                        </div>
+                    </button>
+                </div>
             </nav>
 
+            {/* Mobile Top Bar */}
+            <div className="md:hidden fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shadow-lg">
+                        {user?.username?.substring(0, 2).toUpperCase()}
+                    </div>
+                    <span className="font-bold text-lg text-white drop-shadow-md">Hello, {user?.fullName?.split(' ')[0]}</span>
+                </div>
+                <div className="flex gap-3">
+                    <div className="glass-card-mobile px-2 py-1 flex items-center gap-1 text-xs">
+                        <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
+                        {gpsStatus === 'active' ? 'GPS ON' : 'GPS...'}
+                    </div>
+                    <Notifications />
+                </div>
+            </div>
+
+
             {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-                <div className="glass-card min-h-full p-6 animate-fade-in-up">
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-24 md:pb-8 pt-20 md:pt-8 scrollbar-hide">
+                <div className="glass-card-mobile md:glass-card min-h-full p-4 md:p-6 animate-fade-in-up">
                     <Outlet />
                 </div>
             </main>

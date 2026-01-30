@@ -25,6 +25,19 @@
     transition: background-color 5000s ease-in-out 0s;
     box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.05);
   }
+
+  /* --- Mobile Vibrant Theme --- */
+  .bg-vibrant-gradient {
+    @apply bg-gradient-to-br from-[#4f46e5] via-[#a855f7] to-[#06b6d4];
+  }
+
+  .glass-card-mobile {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl;
+  }
+
+  .nav-pill-mobile {
+    @apply bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-full px-6 py-3 flex items-center justify-around mx-4 mb-4;
+  }
 }
 
 body {
