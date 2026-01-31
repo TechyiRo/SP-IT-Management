@@ -19,12 +19,41 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+const Inventory = require('../models/Inventory');
+
 // @route   POST api/tracking
 // @desc    Create new tracking record
 // @access  Private
 router.post('/', auth, async (req, res) => {
     try {
         const { company, products, status, transportation, transportationCharges } = req.body;
+
+        // Deduce quantity from Inventory
+        if (products && products.length > 0) {
+            for (const product of products) {
+                // Find inventory item by name (using case-insensitive regex for flexibility)
+                const inventoryItem = await Inventory.findOne({
+                    name: { $regex: new RegExp('^' + product.name + '$', 'i') }
+                });
+
+                if (inventoryItem) {
+                    const qtyToDeduce = parseInt(product.quantity) || 1;
+                    if (inventoryItem.quantity >= qtyToDeduce) {
+                        inventoryItem.quantity -= qtyToDeduce;
+                        await inventoryItem.save();
+                    } else {
+                        // Optional: Error if insufficient stock?
+                        // For now, we'll allow it but maybe set to 0 or negative if that's preferred, 
+                        // OR just reduce what is available. 
+                        // User request: "Quantity reduce zali pahije" (Quantity should reduce).
+                        // Let's go into negative or stop at 0? Standard inventory is usually stop at 0 or allow negative (backorder).
+                        // Let's just subtract.
+                        inventoryItem.quantity -= qtyToDeduce;
+                        await inventoryItem.save();
+                    }
+                }
+            }
+        }
 
         const newTracking = new Tracking({
             company,

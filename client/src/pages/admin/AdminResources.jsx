@@ -39,7 +39,7 @@ const AdminResources = () => {
     });
 
     // Temporary state for adding a product within the tracking form
-    const [trackingProductInput, setTrackingProductInput] = useState({ name: '', serialNumber: '' });
+    const [trackingProductInput, setTrackingProductInput] = useState({ name: '', serialNumber: '', quantity: '1' });
 
     const [vendorInput, setVendorInput] = useState('');
 
@@ -160,9 +160,12 @@ const AdminResources = () => {
         if (trackingProductInput.name.trim()) {
             setTrackingForm({
                 ...trackingForm,
-                products: [...trackingForm.products, { ...trackingProductInput }]
+                products: [...trackingForm.products, {
+                    ...trackingProductInput,
+                    quantity: parseInt(trackingProductInput.quantity) || 1
+                }]
             });
-            setTrackingProductInput({ name: '', serialNumber: '' });
+            setTrackingProductInput({ name: '', serialNumber: '', quantity: '1' });
         }
     };
 
@@ -469,7 +472,7 @@ const AdminResources = () => {
                                     <ul className="text-sm text-gray-300 space-y-1 list-disc list-inside">
                                         {item.products.map((p, i) => (
                                             <li key={i}>
-                                                {p.name} {p.serialNumber && <span className="text-xs text-gray-500">({p.serialNumber})</span>}
+                                                {p.name} <span className="text-cyan-400 font-bold text-xs">x{p.quantity || 1}</span> {p.serialNumber && <span className="text-xs text-gray-500">({p.serialNumber})</span>}
                                             </li>
                                         ))}
                                     </ul>
@@ -681,11 +684,29 @@ const AdminResources = () => {
                     <div className="space-y-2 border-t border-b border-white/10 py-3">
                         <label className="text-sm font-medium text-gray-300">Products</label>
                         <div className="flex gap-2">
+                            {/* Inventory Suggestion Input */}
                             <input
-                                className="glass-input flex-1 text-sm"
-                                placeholder="Product Name"
+                                className="glass-input flex-1 text-sm list-none"
+                                list="inventory-suggestions"
+                                placeholder="Select Product from Inventory"
                                 value={trackingProductInput.name}
                                 onChange={e => setTrackingProductInput({ ...trackingProductInput, name: e.target.value })}
+                            />
+                            <datalist id="inventory-suggestions">
+                                {inventory.map(item => (
+                                    <option key={item._id} value={item.name}>
+                                        {item.variant ? `${item.name} (${item.variant})` : item.name} - Available: {item.quantity}
+                                    </option>
+                                ))}
+                            </datalist>
+
+                            <input
+                                type="number"
+                                className="glass-input w-20 text-sm"
+                                placeholder="Qty"
+                                min="1"
+                                value={trackingProductInput.quantity}
+                                onChange={e => setTrackingProductInput({ ...trackingProductInput, quantity: e.target.value })}
                             />
                             <input
                                 className="glass-input w-1/3 text-sm"
@@ -700,7 +721,10 @@ const AdminResources = () => {
                         <div className="space-y-1 mt-2">
                             {trackingForm.products.map((p, idx) => (
                                 <div key={idx} className="flex justify-between items-center bg-white/5 p-2 rounded text-sm">
-                                    <span className="text-gray-300">{p.name} {p.serialNumber && <span className="text-gray-500">({p.serialNumber})</span>}</span>
+                                    <span className="text-gray-300">
+                                        {p.name} <span className="text-cyan-400 font-bold mx-1">x{p.quantity || 1}</span>
+                                        {p.serialNumber && <span className="text-gray-500">({p.serialNumber})</span>}
+                                    </span>
                                     <button type="button" onClick={() => handleRemoveProductFromTracking(idx)} className="text-red-400 hover:text-red-300">
                                         <X size={14} />
                                     </button>

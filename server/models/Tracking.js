@@ -4,7 +4,8 @@ const TrackingSchema = new mongoose.Schema({
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     products: [{
         name: { type: String, required: true },
-        serialNumber: { type: String, default: '' }
+        serialNumber: { type: String, default: '' },
+        quantity: { type: Number, default: 1 }
     }],
     status: {
         type: String,
