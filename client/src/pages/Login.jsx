@@ -102,8 +102,8 @@ const Login = () => {
                             {/* Logo Container */}
                             <div className="relative w-14 h-14 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl border border-cyan-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover:scale-105 transition-transform duration-300">
                                 <div className="absolute inset-0 bg-cyan-400/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-                                <span className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-br from-cyan-400 to-purple-500 tracking-tighter">
-                                    SP<span className="text-white">IT</span>
+                                <span className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-br from-orange-400 to-amber-500 tracking-tighter">
+                                    SP<span className="text-white ml-1.5">IT</span>
                                 </span>
                             </div>
 
