@@ -144,10 +144,27 @@ const Resources = () => {
     const handleAddTracking = async (e) => {
         e.preventDefault();
         try {
+            // Logic to handle if user forgot to click "+" button but filled the input
+            let payload = { ...trackingForm };
+            if (payload.products.length === 0 && trackingProductInput.name.trim()) {
+                const pendingProduct = {
+                    ...trackingProductInput,
+                    name: trackingProductInput.name.trim(),
+                    quantity: parseInt(trackingProductInput.quantity) || 1
+                };
+                payload.products = [pendingProduct];
+                setTrackingProductInput({ name: '', serialNumber: '', quantity: '1' });
+            }
+
+            if (payload.products.length === 0) {
+                alert("Please add at least one product to the tracking record.");
+                return;
+            }
+
             if (editingId) {
-                await api.put(`/api/tracking/${editingId}`, trackingForm);
+                await api.put(`/api/tracking/${editingId}`, payload);
             } else {
-                await api.post('/api/tracking', trackingForm);
+                await api.post('/api/tracking', payload);
             }
             setIsTrackingModalOpen(false);
             fetchResources();
@@ -164,6 +181,7 @@ const Resources = () => {
                 ...trackingForm,
                 products: [...trackingForm.products, {
                     ...trackingProductInput,
+                    name: trackingProductInput.name.trim(),
                     quantity: parseInt(trackingProductInput.quantity) || 1
                 }]
             });

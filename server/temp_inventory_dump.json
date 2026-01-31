@@ -1,0 +1,119 @@
+[
+  {
+    "_id": "697c686cb5023e788e76dd38",
+    "name": "Cat 6 Cable Box 1m ",
+    "quantity": 200,
+    "vendors": [
+      "JAYSHREE INFOSYS"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-30T08:14:36.761Z",
+    "updatedAt": "2026-01-31T08:20:42.063Z",
+    "__v": 0,
+    "variant": "1M"
+  },
+  {
+    "_id": "697c6ad1de19eb776d9598cd",
+    "name": "Desktop ",
+    "variant": "HP Prodesk Series",
+    "quantity": 9,
+    "vendors": [
+      "SP IT"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-30T08:24:49.474Z",
+    "updatedAt": "2026-01-30T08:24:49.474Z",
+    "__v": 0
+  },
+  {
+    "_id": "697c6bbbde19eb776d9598fc",
+    "name": "TP LINK AC 1750 ",
+    "variant": "Omada Access Point",
+    "quantity": 1,
+    "vendors": [
+      "J V Sales"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-30T08:28:43.862Z",
+    "updatedAt": "2026-01-30T08:28:43.862Z",
+    "__v": 0
+  },
+  {
+    "_id": "697c6c09de19eb776d95990c",
+    "name": "DIGISOL Power Adaptor",
+    "variant": "For Use Netgear AP",
+    "quantity": 1,
+    "vendors": [
+      "Caceh Technologies"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-30T08:30:01.073Z",
+    "updatedAt": "2026-01-30T08:30:09.505Z",
+    "__v": 1
+  },
+  {
+    "_id": "697c6c37de19eb776d959922",
+    "name": "Seagate 1TB HDD",
+    "variant": "",
+    "quantity": 1,
+    "vendors": [
+      "CHIP COM"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-30T08:30:47.814Z",
+    "updatedAt": "2026-01-30T08:30:57.071Z",
+    "__v": 0
+  },
+  {
+    "_id": "697c6f72a3b7e1c24677b50b",
+    "name": "Sophos XG 86",
+    "variant": "Sophos Firewall [ Test for VLAN ] ",
+    "quantity": 1,
+    "vendors": [
+      "SP IT"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-30T08:44:34.989Z",
+    "updatedAt": "2026-01-30T08:59:48.419Z",
+    "__v": 0
+  },
+  {
+    "_id": "697db4aa66ca065f8ced3e7c",
+    "name": "NETGEAR GS324",
+    "variant": "Switch",
+    "quantity": 0,
+    "vendors": [
+      "Cache Tech"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-31T07:52:10.874Z",
+    "updatedAt": "2026-01-31T08:09:34.027Z",
+    "__v": 0
+  },
+  {
+    "_id": "697db8f7667009bc1373d6f1",
+    "name": "TP LINK",
+    "variant": "AX23",
+    "quantity": 3,
+    "vendors": [
+      "ARIHANT COMPUTER"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-31T08:10:31.634Z",
+    "updatedAt": "2026-01-31T08:10:31.634Z",
+    "__v": 0
+  },
+  {
+    "_id": "697dbb439febc82a2dba6076",
+    "name": "Cat 6 Cable Box",
+    "variant": "2M",
+    "quantity": 200,
+    "vendors": [
+      "JAYSHREE INFOSYS"
+    ],
+    "addedBy": "69760f41d5c1f582aeaf1d44",
+    "createdAt": "2026-01-31T08:20:19.346Z",
+    "updatedAt": "2026-01-31T08:20:19.346Z",
+    "__v": 0
+  }
+]

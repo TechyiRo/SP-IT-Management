@@ -1,0 +1,4 @@
+2026-01-31T08:38:29.718Z: Processing Tracking with Products: []
+2026-01-31T08:40:58.703Z: Processing Tracking with Products: [{"name":"Seagate 1TB HDD","serialNumber":"","quantity":1}]
+2026-01-31T08:40:58.724Z: Searching for: "Seagate 1TB HDD" -> Regex: "^\s*Seagate 1TB HDD\s*$" -> Found: Seagate 1TB HDD
+2026-01-31T08:40:58.748Z: Deducted 1 from "Seagate 1TB HDD". New Qty: 0
