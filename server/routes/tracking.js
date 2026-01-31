@@ -90,6 +90,49 @@ router.put('/:id', auth, async (req, res) => {
 
         const { company, products, status, transportation, transportationCharges } = req.body;
 
+        log(`UPDATING Tracking ${req.params.id}. Products: ${JSON.stringify(products)}`);
+
+        // Handle Inventory Adjustments if products change
+        if (products && products.length > 0) {
+            // Map old products for easy lookup
+            const oldProductsMap = new Map();
+            if (tracking.products) {
+                tracking.products.forEach(p => {
+                    oldProductsMap.set(p.name + (p.serialNumber || ''), parseInt(p.quantity) || 1);
+                });
+            }
+
+            for (const newProd of products) {
+                const safeName = escapeRegExp(newProd.name.trim());
+                const newVal = parseInt(newProd.quantity) || 1;
+                const oldKey = newProd.name + (newProd.serialNumber || '');
+                const oldVal = oldProductsMap.get(oldKey) || 0;
+
+                const diff = newVal - oldVal;
+
+                if (diff !== 0) {
+                    const inventoryItem = await Inventory.findOne({
+                        name: { $regex: new RegExp('^\\s*' + safeName + '\\s*$', 'i') }
+                    });
+
+                    if (inventoryItem) {
+                        // If diff is positive (added more), we deduct from inventory
+                        // If diff is negative (removed/reduced), we add back to inventory
+                        inventoryItem.quantity -= diff;
+                        await inventoryItem.save();
+                        log(`Adjustment: "${newProd.name}" Diff: ${diff}. Inventory Limit New: ${inventoryItem.quantity}`);
+                    } else {
+                        log(`Inventory Item not found for adjustment: "${newProd.name}"`);
+                    }
+                }
+                // Remove from map to track deletions later if needed (optional)
+                oldProductsMap.delete(oldKey);
+            }
+
+            // Optional: Handle items completely removed? 
+            // For now, let's focus on Added/Modified items as that's the user's case.
+        }
+
         if (company) tracking.company = company;
         if (products) tracking.products = products;
         if (status) tracking.status = status;

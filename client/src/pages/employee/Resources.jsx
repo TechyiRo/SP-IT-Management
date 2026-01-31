@@ -62,7 +62,9 @@ const Resources = () => {
             const trackRes = await api.get('/api/tracking');
             setTracking(trackRes.data);
         } catch (err) {
-            console.error(err);
+            console.error("Fetch Error:", err);
+            const msg = err.response?.data?.msg || err.message || "Unknown Fetch Error";
+            alert("Error loading resources: " + msg);
         }
     };
 
