@@ -5,7 +5,7 @@ const TaskSchema = new mongoose.Schema({
     description: { type: String }, // Rich text HTML
     priority: {
         type: String,
-        enum: ['High', 'Medium', 'Low'],
+        enum: ['High', 'Medium', 'Low', 'Urgent'],
         default: 'Medium'
     },
     category: { type: String, default: 'Development' },

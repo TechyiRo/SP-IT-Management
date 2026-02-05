@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Flag, Tag, Layers, Briefcase, User, CheckSquare, Paperclip, Plus, Trash2 } from 'lucide-react';
+import { X, Calendar, Flag, Tag, Layers, Briefcase, User, CheckSquare, Paperclip, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
+import api from '../../api/axios';
 // import ReactQuill from 'react-quill'; // REMOVED: Incompatible with React 19
 // import 'react-quill/dist/quill.snow.css'; // Import styles
 
-export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskUpdate, users = [], companies = [], products = [], taskToEdit = null }) {
+export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskUpdate, users = [], companies = [], products = [], taskToEdit = null, refreshData }) {
     const isEditMode = !!taskToEdit;
 
     const [formData, setFormData] = useState({
@@ -23,6 +24,12 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskU
 
     const [reqInput, setReqInput] = useState('');
     const [attachments, setAttachments] = useState([]);
+
+    // New State for Inline Creation
+    const [isAddingProduct, setIsAddingProduct] = useState(false);
+    const [newProduct, setNewProduct] = useState({ name: '', serialNumber: '', type: 'Laptop' });
+    const [isAddingCategory, setIsAddingCategory] = useState(false);
+
 
     // Reset or Populate form when modal opens
     useEffect(() => {
@@ -128,6 +135,24 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskU
         }
     };
 
+    const handleCreateProduct = async () => {
+        if (!newProduct.name || !newProduct.serialNumber) return alert('Name and Serial Number required');
+        try {
+            const res = await api.post('/api/resources/products', {
+                ...newProduct,
+                status: 'InStock',
+                addedBy: 'Admin' // Backend handles this from token usually, but just in case
+            });
+            if (refreshData) await refreshData();
+            setFormData(prev => ({ ...prev, product: res.data._id }));
+            setIsAddingProduct(false);
+            setNewProduct({ name: '', serialNumber: '', type: 'Laptop' });
+        } catch (err) {
+            console.error(err);
+            alert('Failed to create product: ' + (err.response?.data?.msg || err.message));
+        }
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -193,20 +218,39 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskU
 
                                         <div>
                                             <label className="block text-sm font-medium text-indigo-200 mb-1">Category</label>
-                                            <div className="relative">
-                                                <Tag className="absolute left-3 top-3 text-gray-400" size={16} />
-                                                <select
-                                                    name="category"
-                                                    value={formData.category}
-                                                    onChange={handleChange}
-                                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                            <div className="relative flex gap-2">
+                                                {!isAddingCategory ? (
+                                                    <div className="relative w-full">
+                                                        <Tag className="absolute left-3 top-3 text-gray-400" size={16} />
+                                                        <select
+                                                            name="category"
+                                                            value={formData.category}
+                                                            onChange={handleChange}
+                                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                                        >
+                                                            <option value="Development">Development</option>
+                                                            <option value="Design">Design</option>
+                                                            <option value="Marketing">Marketing</option>
+                                                            <option value="Maintenance">Maintenance</option>
+                                                        </select>
+                                                    </div>
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        name="category"
+                                                        value={formData.category}
+                                                        onChange={handleChange}
+                                                        placeholder="Enter Category"
+                                                        className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                                    />
+                                                )}
+                                                <button
+                                                    onClick={() => setIsAddingCategory(!isAddingCategory)}
+                                                    className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white transition-colors"
+                                                    title={isAddingCategory ? "Select from list" : "Add custom category"}
                                                 >
-                                                    <option value="Development">Development</option>
-                                                    <option value="Design">Design</option>
-                                                    <option value="Marketing">Marketing</option>
-                                                    <option value="Maintenance">Maintenance</option>
-                                                    <option value="Other">Other</option>
-                                                </select>
+                                                    {isAddingCategory ? <RotateCcw size={18} /> : <Plus size={18} />}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -249,20 +293,71 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskU
 
                                         <div>
                                             <label className="block text-sm font-medium text-indigo-200 mb-1">Product</label>
-                                            <div className="relative">
-                                                <Layers className="absolute left-3 top-3 text-gray-400" size={16} />
-                                                <select
-                                                    name="product"
-                                                    value={formData.product}
-                                                    onChange={handleChange}
-                                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
-                                                >
-                                                    <option value="">Select Product</option>
-                                                    {products.map(p => (
-                                                        <option key={p._id} value={p._id}>{p.name}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                            {!isAddingProduct ? (
+                                                <div className="relative flex gap-2">
+                                                    <div className="relative w-full">
+                                                        <Layers className="absolute left-3 top-3 text-gray-400" size={16} />
+                                                        <select
+                                                            name="product"
+                                                            value={formData.product}
+                                                            onChange={handleChange}
+                                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                                        >
+                                                            <option value="">Select Product</option>
+                                                            {products.map(p => (
+                                                                <option key={p._id} value={p._id}>{p.name} ({p.serialNumber})</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setIsAddingProduct(true)}
+                                                        className="p-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors"
+                                                        title="Add New Product"
+                                                    >
+                                                        <Plus size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 space-y-3">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider">New Product</span>
+                                                        <button onClick={() => setIsAddingProduct(false)} className="text-gray-400 hover:text-white"><X size={14} /></button>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Product Name"
+                                                        value={newProduct.name}
+                                                        onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+                                                        className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white"
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Serial No."
+                                                            value={newProduct.serialNumber}
+                                                            onChange={e => setNewProduct({ ...newProduct, serialNumber: e.target.value })}
+                                                            className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white"
+                                                        />
+                                                        <select
+                                                            value={newProduct.type}
+                                                            onChange={e => setNewProduct({ ...newProduct, type: e.target.value })}
+                                                            className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white"
+                                                        >
+                                                            <option value="Laptop">Laptop</option>
+                                                            <option value="Monitor">Monitor</option>
+                                                            <option value="Mobile">Mobile</option>
+                                                            <option value="Accessory">Accessory</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                    </div>
+                                                    <button
+                                                        onClick={handleCreateProduct}
+                                                        className="w-full py-1.5 bg-green-600 hover:bg-green-500 text-white rounded text-sm font-medium flex items-center justify-center gap-1"
+                                                    >
+                                                        <Save size={14} /> Save Product
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { Users, UserCheck, CheckSquare, AlertCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const { themeParams } = useOutletContext(); // Access theme params
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalEmployees: 0,
@@ -34,7 +35,7 @@ const AdminDashboard = () => {
     const StatCard = ({ title, value, icon: Icon, color, trend, trendColor = 'text-emerald-400 bg-emerald-500/10', link }) => (
         <div
             onClick={() => link && navigate(link)}
-            className={`glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 h-full flex flex-col justify-between ${link ? 'cursor-pointer' : ''}`}
+            className={`${themeParams.card} p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 h-full flex flex-col justify-between ${link ? 'cursor-pointer' : ''}`}
         >
             <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
                 <Icon className="w-24 h-24" />
@@ -44,7 +45,7 @@ const AdminDashboard = () => {
                     <Icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-gray-400 text-sm font-medium mb-1">{title}</h3>
-                <div className="text-3xl font-bold text-white mb-2">{loading ? '...' : value}</div>
+                <div className={`text-3xl font-bold ${themeParams.text} mb-2`}>{loading ? '...' : value}</div>
                 <span className={`text-xs font-medium px-2 py-1 rounded-lg ${trendColor}`}>
                     {trend}
                 </span>
@@ -57,11 +58,11 @@ const AdminDashboard = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Dashboard Overview</h1>
-                    <p className="text-gray-400 text-sm">Welcome back, here's what's happening today.</p>
+                    <p className={`text-sm ${themeParams.text} opacity-70`}>Welcome back, here's what's happening today.</p>
                 </div>
-                <div className="glass-card px-4 py-2 flex items-center gap-2">
+                <div className={`${themeParams.card} px-4 py-2 flex items-center gap-2`}>
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">System Online</span>
+                    <span className={`text-sm font-medium ${themeParams.text}`}>System Online</span>
                 </div>
             </div>
 
@@ -105,8 +106,8 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
-                <div className="glass-card p-6 lg:col-span-3 h-full flex flex-col">
-                    <h3 className="text-lg font-bold mb-6">Attendance & Task Trends (Last 7 Days)</h3>
+                <div className={`${themeParams.card} p-6 lg:col-span-3 h-full flex flex-col`}>
+                    <h3 className={`text-lg font-bold mb-6 ${themeParams.text}`}>Attendance & Task Trends (Last 7 Days)</h3>
                     <div className="flex-1 min-h-[320px]">
                         {loading ? (
                             <div className="flex items-center justify-center h-full text-gray-500">Loading Chart...</div>
@@ -138,7 +139,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="glass-card p-6 h-full flex flex-col">
+                <div className={`${themeParams.card} p-6 h-full flex flex-col`}>
                     <h3 className="text-lg font-bold mb-6">Recent Activity</h3>
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
                         {stats.recentActivity.length === 0 ? (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Calendar, User, Clock, AlertCircle, LayoutList, Kanban, MoreVertical } from 'lucide-react';
+import { Plus, Search, Calendar, User, Clock, AlertCircle, LayoutList, Kanban, MoreVertical, CheckCircle, XCircle, PauseCircle, PlayCircle, Clock3 } from 'lucide-react';
 import CreateTaskModal from '../../components/admin/CreateTaskModal';
 
 // NOTE: DND Library completely removed to prevent React 19 crashes.
@@ -20,6 +20,16 @@ const Tasks = () => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'board'
     const [editingTask, setEditingTask] = useState(null);
     const [showToast, setShowToast] = useState(false);
+    const [filterStatus, setFilterStatus] = useState('All');
+
+    // Status Constants for Cards
+    const STATUS_TYPES = [
+        { name: 'Pending', icon: Clock3, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+        { name: 'In Progress', icon: PlayCircle, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+        { name: 'On Hold', icon: PauseCircle, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+        { name: 'Completed', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+        { name: 'Cancelled', icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    ];
 
     useEffect(() => {
         fetchData();
@@ -221,10 +231,18 @@ const Tasks = () => {
         }
     };
 
-    const filteredTasks = Array.isArray(tasks) ? tasks.filter(task =>
-        task && task.title && typeof task.title === 'string' &&
-        task.title.toLowerCase().includes(searchTerm.toLowerCase())
-    ) : [];
+    const filteredTasks = Array.isArray(tasks) ? tasks.filter(task => {
+        const matchesSearch = task && task.title && typeof task.title === 'string' &&
+            task.title.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filterStatus === 'All' || task.status === filterStatus;
+        return matchesSearch && matchesStatus;
+    }) : [];
+
+    // Calculate Counts
+    const getStatusCount = (status) => {
+        if (!Array.isArray(tasks)) return 0;
+        return tasks.filter(t => t.status === status).length;
+    };
 
     const renderListView = () => (
         <div className="glass-card overflow-x-auto">
@@ -399,6 +417,46 @@ const Tasks = () => {
                 </div>
             </div>
 
+            {/* STATUS CARDS */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <div
+                    onClick={() => setFilterStatus('All')}
+                    className={`glass-card p-4 cursor-pointer transition-all hover:translate-y-[-2px] ${filterStatus === 'All' ? 'ring-2 ring-indigo-500 bg-white/10' : 'hover:bg-white/5'}`}
+                >
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">All Tasks</p>
+                            <h3 className="text-2xl font-bold text-white mt-1">{tasks.length}</h3>
+                        </div>
+                        <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                            <LayoutList size={20} />
+                        </div>
+                    </div>
+                </div>
+
+                {STATUS_TYPES.map((status) => {
+                    const Icon = status.icon;
+                    const isActive = filterStatus === status.name;
+                    return (
+                        <div
+                            key={status.name}
+                            onClick={() => setFilterStatus(status.name)}
+                            className={`glass-card p-4 cursor-pointer transition-all hover:translate-y-[-2px] border ${status.border} ${isActive ? 'ring-2 ring-cyan-400 bg-white/10' : 'hover:bg-white/5'}`}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className={`text-xs uppercase font-bold tracking-wider opacity-80 ${status.color}`}>{status.name}</p>
+                                    <h3 className="text-2xl font-bold text-white mt-1">{getStatusCount(status.name)}</h3>
+                                </div>
+                                <div className={`p-2 rounded-lg ${status.bg} ${status.color}`}>
+                                    <Icon size={20} />
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
             {viewMode === 'list' ? renderListView() : renderBoardView()}
 
             <CreateTaskModal
@@ -413,6 +471,7 @@ const Tasks = () => {
                 companies={companies}
                 products={products}
                 taskToEdit={editingTask}
+                refreshData={fetchData}
             />
         </div>
     );
