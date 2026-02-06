@@ -33,7 +33,9 @@ const Users = () => {
             canViewAllTasks: false,
             canAddWorkDetails: true,
             canViewReports: false,
-            canAccessResources: false
+            canAccessResources: false,
+            canManagePasswords: false,
+            canViewPasswordDetails: false
         }
     });
 
@@ -57,7 +59,7 @@ const Users = () => {
     const resetForm = () => {
         setFormData({
             username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', address: '', baseSalary: '', employeeId: '', role: 'employee', status: 'active',
-            permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false, canAccessResources: false }
+            permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false, canAccessResources: false, canManagePasswords: false }
         });
         setEditMode(false);
         setCurrentUserId(null);
@@ -89,7 +91,9 @@ const Users = () => {
                 canViewAllTasks: user.permissions?.canViewAllTasks || false,
                 canAddWorkDetails: user.permissions?.canAddWorkDetails || true,
                 canViewReports: user.permissions?.canViewReports || false,
-                canAccessResources: user.permissions?.canAccessResources || false
+                canAccessResources: user.permissions?.canAccessResources || false,
+                canManagePasswords: user.permissions?.canManagePasswords || false,
+                canViewPasswordDetails: user.permissions?.canViewPasswordDetails || false
             }
         });
         setEditMode(true);
@@ -369,7 +373,7 @@ const Users = () => {
                                     canViewAllTasks: 'Can View All Tasks',
                                     canAddWorkDetails: 'Can Add Work Details',
                                     canViewReports: 'Can View Reports',
-                                    canAccessResources: 'Can Access Resources'
+                                    canAccessResources: 'Can Access Resources',
                                 }).map(([key, label]) => (
                                     <div key={key} className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer" onClick={() => togglePermission(key)}>
                                         <span className="text-sm text-gray-300">{label}</span>
@@ -378,6 +382,23 @@ const Users = () => {
                                         </div>
                                     </div>
                                 ))}
+
+                                {/* Custom toggle for canManagePasswords and nested canViewPasswordDetails */}
+                                <div className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer" onClick={() => togglePermission('canManagePasswords')}>
+                                    <span className="text-sm text-gray-300">Can Manage Passwords</span>
+                                    <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.permissions.canManagePasswords ? 'bg-cyan-500' : 'bg-gray-700'}`}>
+                                        <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform duration-300 ${formData.permissions.canManagePasswords ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                    </div>
+                                </div>
+
+                                {formData.permissions.canManagePasswords && (
+                                    <div className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer ml-4 border-l-2 border-gray-700" onClick={() => togglePermission('canViewPasswordDetails')}>
+                                        <span className="text-sm text-gray-300">Can View Password Details</span>
+                                        <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.permissions.canViewPasswordDetails ? 'bg-yellow-500' : 'bg-gray-700'}`}>
+                                            <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform duration-300 ${formData.permissions.canViewPasswordDetails ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

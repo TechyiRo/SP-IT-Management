@@ -17,6 +17,7 @@ import AdminTracking from './pages/admin/Tracking';
 import AdminLiveTracking from './pages/admin/LiveTracking';
 import AdminResources from './pages/admin/AdminResources';
 import Payroll from './pages/admin/Payroll';
+import PasswordManager from './pages/admin/PasswordManager';
 
 // Placeholder Pages
 import EmployeeDashboard from './pages/employee/Dashboard';
@@ -24,6 +25,7 @@ import EmployeeAttendance from './pages/employee/Attendance';
 import EmployeeTasks from './pages/employee/Tasks';
 import TaskDetails from './pages/employee/TaskDetails';
 import EmployeeWorkLog from './pages/employee/WorkLog';
+import EmployeePasswordManager from './pages/employee/PasswordManager';
 
 import EmployeeResources from './pages/employee/Resources';
 import MySalary from './pages/employee/MySalary';
@@ -72,6 +74,7 @@ const AppRoutes = () => {
         <Route path="tracking" element={<AdminTracking />} />
         <Route path="live-tracking" element={<AdminLiveTracking />} />
         <Route path="payroll" element={<Payroll />} />
+        <Route path="password-manager" element={<PasswordManager />} />
       </Route>
 
       {/* Employee Routes */}
@@ -85,6 +88,7 @@ const AppRoutes = () => {
         <Route path="tasks" element={<EmployeeTasks />} />
         <Route path="tasks/:id" element={<TaskDetails />} />
         <Route path="work-log" element={<EmployeeWorkLog />} />
+        <Route path="password-manager" element={<EmployeePasswordManager />} />
         <Route path="resources" element={
           user?.permissions?.canAccessResources ? <EmployeeResources /> : <Navigate to="/employee" replace />
         } />

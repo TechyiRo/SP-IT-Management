@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee, MapPin, Palette } from 'lucide-react';
+import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee, MapPin, Palette, Key } from 'lucide-react';
 import clsx from 'clsx';
 import Notifications from '../components/ui/Notifications';
 import { useState, useEffect } from 'react';
@@ -105,6 +105,7 @@ const EmployeeLayout = () => {
         { path: '/employee/tasks', icon: CheckSquare, label: 'My Tasks' },
         { path: '/employee/work-log', icon: FileText, label: 'Work Log' },
         // Conditional Render
+        ...(user?.permissions?.canManagePasswords ? [{ path: '/employee/password-manager', icon: Key, label: 'Passwords' }] : []),
         ...(user?.permissions?.canAccessResources ? [{ path: '/employee/resources', icon: Package, label: 'Resources' }] : []),
         { path: '/employee/salary', icon: IndianRupee, label: 'My Salary' },
     ];

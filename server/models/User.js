@@ -22,7 +22,9 @@ const UserSchema = new mongoose.Schema({
         canViewAllTasks: { type: Boolean, default: false },
         canAddWorkDetails: { type: Boolean, default: true },
         canViewReports: { type: Boolean, default: false },
-        canAccessResources: { type: Boolean, default: false } // Controlled by Admin
+        canAccessResources: { type: Boolean, default: false }, // Controlled by Admin
+        canManagePasswords: { type: Boolean, default: false },
+        canViewPasswordDetails: { type: Boolean, default: false } // New permission to view sensitive data
     },
     lastLocation: {
         latitude: String,
