@@ -19,7 +19,7 @@ router.get('/:companyId', verifyToken, async (req, res) => {
         }
 
         const credentials = await Credential.find({ company: req.params.companyId })
-            .populate('addedBy', 'name'); // Populate addedBy with user's name
+            .populate('addedBy', 'fullName'); // Populate addedBy with user's name
 
         // Mask data if not allowed
         if (!canViewDetails) {
@@ -67,7 +67,7 @@ router.post('/', verifyToken, async (req, res) => {
 
         const savedCredentials = await Credential.insertMany(newCredentials);
         // Populate the addedBy field for the response
-        const populatedCredentials = await Credential.populate(savedCredentials, { path: 'addedBy', select: 'name' });
+        const populatedCredentials = await Credential.populate(savedCredentials, { path: 'addedBy', select: 'fullName' });
 
         res.status(201).json(populatedCredentials);
     } catch (err) {
@@ -98,7 +98,7 @@ router.put('/:id', verifyToken, async (req, res) => {
                 color: color || 'blue'
             },
             { new: true }
-        ).populate('addedBy', 'name');
+        ).populate('addedBy', 'fullName');
 
         if (!updatedCredential) return res.status(404).json({ message: 'Credential not found' });
 

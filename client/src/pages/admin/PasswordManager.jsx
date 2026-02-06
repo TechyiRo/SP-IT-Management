@@ -313,7 +313,7 @@ const PasswordManager = () => {
                                                 )}
 
                                                 <div className="mt-3 text-xs text-gray-500 flex items-center justify-end gap-1">
-                                                    Added by: <span className="text-gray-400">{cred.addedBy?.name || 'Unknown'}</span>
+                                                    Added by: <span className="text-gray-400">{cred.addedBy?.fullName || 'Unknown'}</span>
                                                     <span className="mx-1">•</span>
                                                     {new Date(cred.createdAt).toLocaleDateString()}
                                                 </div>
