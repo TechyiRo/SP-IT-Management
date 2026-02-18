@@ -26,7 +26,9 @@ router.post('/', auth, async (req, res) => {
 // @access  Private
 router.get('/me', auth, async (req, res) => {
     try {
-        const logs = await WorkLog.find({ employee: req.user.id }).sort({ date: -1 });
+        const logs = await WorkLog.find({ employee: req.user.id })
+            .populate('company', 'name type')
+            .sort({ date: -1 });
         res.json(logs);
     } catch (err) {
         console.error(err.message);
