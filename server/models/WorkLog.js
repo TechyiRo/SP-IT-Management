@@ -9,6 +9,11 @@ const WorkLogSchema = new mongoose.Schema({
     task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' }, // Optional
     type: { type: String, required: true }, // Development, BugFix, Meeting
     duration: { type: Number, required: true }, // Minutes
+    steps: [{
+        text: String,
+        type: String, // Coding, Testing, Design, Meeting
+        status: { type: String, default: 'Pending' }
+    }],
     // Extended Tracking
     issuesFaced: { type: String },
     solutionsImplemented: { type: String },
