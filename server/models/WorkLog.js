@@ -11,7 +11,7 @@ const WorkLogSchema = new mongoose.Schema({
     duration: { type: Number, required: true }, // Minutes
     steps: [{
         text: String,
-        type: String, // Coding, Testing, Design, Meeting
+        type: { type: String }, // Coding, Testing, Design, Meeting
         status: { type: String, default: 'Pending' }
     }],
     // Extended Tracking
