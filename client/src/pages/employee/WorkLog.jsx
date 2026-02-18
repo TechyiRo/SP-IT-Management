@@ -132,7 +132,9 @@ const EmployeeWorkLog = () => {
             setSteps([]);
             fetchLogs();
         } catch (err) {
-            alert('Error submitting work log');
+            console.error("Work Log Check:", err);
+            const msg = err.response?.data?.msg || err.response?.data || err.message;
+            alert(`Error submitting work log: ${msg}`);
         }
     };
 
