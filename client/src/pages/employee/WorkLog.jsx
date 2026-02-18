@@ -123,6 +123,7 @@ const EmployeeWorkLog = () => {
         try {
             const payload = {
                 ...formData,
+                company: formData.company || null,
                 duration: parseDuration(formData.duration),
                 steps: steps
             };
