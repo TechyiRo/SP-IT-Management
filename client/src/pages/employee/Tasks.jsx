@@ -265,14 +265,14 @@ const EmployeeTasks = () => {
     }
 
     return (
-        <div className="space-y-8 pb-8">
+        <div className="space-y-4 sm:space-y-6 pb-6 lg:pb-8">
             {/* ── Page Header ── */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
                         My Tasks 🎯
                     </h1>
-                    <p className="text-gray-400 text-[10px] sm:text-sm mt-1">Tap a card to filter your tasks</p>
+                    <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm mt-0.5">Filter items by clicking a status card</p>
                 </div>
                 {activeFilter !== 'all' && (
                     <button
@@ -286,7 +286,7 @@ const EmployeeTasks = () => {
             </div>
 
             {/* ── 3D Status Cards Grid ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
                 {STATUS_CONFIG.map((config, i) => (
                     <StatusCard
                         key={config.key}
@@ -301,8 +301,8 @@ const EmployeeTasks = () => {
 
             {/* ── Filter Bar ── */}
             <div className="flex items-center gap-3">
-                <div className={`h-6 w-1 rounded-full bg-gradient-to-b ${activeConfig.gradient}`} />
-                <h2 className={`text-lg font-bold ${activeConfig.text}`}>
+                <div className={`h-5 w-1 rounded-full bg-gradient-to-b ${activeConfig.gradient}`} />
+                <h2 className={`text-base lg:text-lg font-bold ${activeConfig.text}`}>
                     {activeConfig.emoji} {activeConfig.label}
                 </h2>
                 <span className={`ml-1 text-sm px-2.5 py-0.5 rounded-full ${activeConfig.badge}`}>
@@ -324,7 +324,7 @@ const EmployeeTasks = () => {
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
                     {filtered.map((task, idx) => {
                         const cfg = STATUS_CONFIG.find(s => s.key === task.status) || STATUS_CONFIG[0];
                         return (

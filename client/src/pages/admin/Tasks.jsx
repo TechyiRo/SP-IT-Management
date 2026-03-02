@@ -391,140 +391,139 @@ const Tasks = () => {
             </div>
         </div>
     );
+
+    const renderBoardView = () => (
+        <div className="glass-card p-10 text-center flex flex-col items-center justify-center text-gray-400">
+            <Kanban className="w-12 h-12 mb-4 text-gray-600" />
+            <h3 className="text-lg font-bold text-white mb-2">Kanban Board Unavailable</h3>
+            <p>The drag-and-drop feature is currently disabled for maintenance.</p>
+            <button
+                onClick={() => setViewMode('list')}
+                className="mt-4 glass-button text-sm"
+            >
+                Return to List View
+            </button>
+        </div>
     );
 
-const renderBoardView = () => (
-    <div className="glass-card p-10 text-center flex flex-col items-center justify-center text-gray-400">
-        <Kanban className="w-12 h-12 mb-4 text-gray-600" />
-        <h3 className="text-lg font-bold text-white mb-2">Kanban Board Unavailable</h3>
-        <p>The drag-and-drop feature is currently disabled for maintenance.</p>
-        <button
-            onClick={() => setViewMode('list')}
-            className="mt-4 glass-button text-sm"
-        >
-            Return to List View
-        </button>
-    </div>
-);
-
-return (
-    <div>
-        {/* TOAST NOTIFICATION */}
-        {showToast && (
-            <div className="fixed bottom-10 right-10 bg-slate-800 border border-green-500/50 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-4 animate-bounce">
-                <div className="bg-green-500/20 p-2 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                </div>
-                <div>
-                    <h4 className="font-bold text-green-400">Image Copied!</h4>
-                    <p className="text-sm text-gray-300">Just press <strong className="text-white">Ctrl + V</strong> in WhatsApp.</p>
-                </div>
-            </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Task Management</h1>
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                <div className="bg-slate-900/50 p-1 rounded-lg flex items-center border border-white/10 flex-1 sm:flex-none justify-center">
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`p-2 rounded-md transition-all flex-1 sm:flex-none flex justify-center ${viewMode === 'list' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25' : 'text-gray-400 hover:text-white'}`}
-                        title="List View"
-                    >
-                        <LayoutList className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('board')}
-                        className={`p-2 rounded-md transition-all flex-1 sm:flex-none flex justify-center ${viewMode === 'board' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25' : 'text-gray-400 hover:text-white'}`}
-                        title="Board View"
-                    >
-                        <Kanban className="w-4 h-4" />
-                    </button>
-                </div>
-                <button
-                    onClick={() => {
-                        setEditingTask(null);
-                        setIsModalOpen(true);
-                    }}
-                    className="glass-button flex items-center justify-center gap-2 flex-1 sm:flex-none py-2.5 sm:py-2 text-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Create Task</span>
-                </button>
-            </div>
-        </div>
-
-        <div className="glass-card p-4 mb-6">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                    type="text"
-                    placeholder="Search tasks by title..."
-                    className="glass-input w-full pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-        </div>
-
-        {/* STATUS CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-            <div
-                onClick={() => setFilterStatus('All')}
-                className={`glass-card p-3 sm:p-4 cursor-pointer transition-all hover:translate-y-[-2px] ${filterStatus === 'All' ? 'ring-2 ring-indigo-500 bg-white/10' : 'hover:bg-white/5'}`}
-            >
-                <div className="flex justify-between items-start">
+    return (
+        <div>
+            {/* TOAST NOTIFICATION */}
+            {showToast && (
+                <div className="fixed bottom-10 right-10 bg-slate-800 border border-green-500/50 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-4 animate-bounce">
+                    <div className="bg-green-500/20 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    </div>
                     <div>
-                        <p className="text-gray-400 text-[10px] sm:text-xs uppercase font-bold tracking-wider">All Tasks</p>
-                        <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">{tasks.length}</h3>
+                        <h4 className="font-bold text-green-400">Image Copied!</h4>
+                        <p className="text-sm text-gray-300">Just press <strong className="text-white">Ctrl + V</strong> in WhatsApp.</p>
                     </div>
-                    <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
-                        <LayoutList size={18} />
+                </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Task Management</h1>
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                    <div className="bg-slate-900/50 p-1 rounded-lg flex items-center border border-white/10 flex-1 sm:flex-none justify-center">
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-md transition-all flex-1 sm:flex-none flex justify-center ${viewMode === 'list' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25' : 'text-gray-400 hover:text-white'}`}
+                            title="List View"
+                        >
+                            <LayoutList className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('board')}
+                            className={`p-2 rounded-md transition-all flex-1 sm:flex-none flex justify-center ${viewMode === 'board' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25' : 'text-gray-400 hover:text-white'}`}
+                            title="Board View"
+                        >
+                            <Kanban className="w-4 h-4" />
+                        </button>
                     </div>
+                    <button
+                        onClick={() => {
+                            setEditingTask(null);
+                            setIsModalOpen(true);
+                        }}
+                        className="glass-button flex items-center justify-center gap-2 flex-1 sm:flex-none py-2.5 sm:py-2 text-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span className="whitespace-nowrap">Create Task</span>
+                    </button>
                 </div>
             </div>
 
-            {STATUS_TYPES.map((status) => {
-                const Icon = status.icon;
-                const isActive = filterStatus === status.name;
-                return (
-                    <div
-                        key={status.name}
-                        onClick={() => setFilterStatus(status.name)}
-                        className={`glass-card p-3 sm:p-4 cursor-pointer transition-all hover:translate-y-[-2px] border ${status.border} ${isActive ? 'ring-2 ring-cyan-400 bg-white/10' : 'hover:bg-white/5'}`}
-                    >
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className={`text-[10px] sm:text-xs uppercase font-bold tracking-wider opacity-80 ${status.color}`}>{status.name}</p>
-                                <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">{getStatusCount(status.name)}</h3>
-                            </div>
-                            <div className={`p-1.5 sm:p-2 rounded-lg ${status.bg} ${status.color}`}>
-                                <Icon size={18} />
-                            </div>
+            <div className="glass-card p-4 mb-6">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                        type="text"
+                        placeholder="Search tasks by title..."
+                        className="glass-input w-full pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            {/* STATUS CARDS */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+                <div
+                    onClick={() => setFilterStatus('All')}
+                    className={`glass-card p-3 sm:p-4 cursor-pointer transition-all hover:translate-y-[-2px] ${filterStatus === 'All' ? 'ring-2 ring-indigo-500 bg-white/10' : 'hover:bg-white/5'}`}
+                >
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="text-gray-400 text-[10px] sm:text-xs uppercase font-bold tracking-wider">All Tasks</p>
+                            <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">{tasks.length}</h3>
+                        </div>
+                        <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                            <LayoutList size={18} />
                         </div>
                     </div>
-                );
-            })}
+                </div>
+
+                {STATUS_TYPES.map((status) => {
+                    const Icon = status.icon;
+                    const isActive = filterStatus === status.name;
+                    return (
+                        <div
+                            key={status.name}
+                            onClick={() => setFilterStatus(status.name)}
+                            className={`glass-card p-3 sm:p-4 cursor-pointer transition-all hover:translate-y-[-2px] border ${status.border} ${isActive ? 'ring-2 ring-cyan-400 bg-white/10' : 'hover:bg-white/5'}`}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className={`text-[10px] sm:text-xs uppercase font-bold tracking-wider opacity-80 ${status.color}`}>{status.name}</p>
+                                    <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">{getStatusCount(status.name)}</h3>
+                                </div>
+                                <div className={`p-1.5 sm:p-2 rounded-lg ${status.bg} ${status.color}`}>
+                                    <Icon size={18} />
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {viewMode === 'list' ? renderListView() : renderBoardView()}
+
+            <CreateTaskModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingTask(null);
+                }}
+                onTaskCreate={handleTaskCreate}
+                onTaskUpdate={handleTaskUpdate}
+                users={users}
+                companies={companies}
+                products={products}
+                taskToEdit={editingTask}
+                refreshData={fetchData}
+            />
         </div>
-
-        {viewMode === 'list' ? renderListView() : renderBoardView()}
-
-        <CreateTaskModal
-            isOpen={isModalOpen}
-            onClose={() => {
-                setIsModalOpen(false);
-                setEditingTask(null);
-            }}
-            onTaskCreate={handleTaskCreate}
-            onTaskUpdate={handleTaskUpdate}
-            users={users}
-            companies={companies}
-            products={products}
-            taskToEdit={editingTask}
-            refreshData={fetchData}
-        />
-    </div>
-);
+    );
 };
 
 export default Tasks;

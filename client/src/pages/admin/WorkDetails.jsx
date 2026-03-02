@@ -113,8 +113,8 @@ const WorkDetails = () => {
 
             {/* Details Modal */}
             {selectedLog && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" onClick={() => setSelectedLog(null)}>
-                    <div className="glass-card w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col relative" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pt-4 sm:pt-10 pb-10" onClick={() => setSelectedLog(null)}>
+                    <div className="glass-card w-full max-w-2xl flex flex-col shrink-0 mb-10 relative" style={{ maxHeight: 'calc(100% - 2rem)' }} onClick={e => e.stopPropagation()}>
                         {/* Modal Header */}
                         <div className="p-6 border-b border-white/10 flex justify-between items-start bg-white/5">
                             <div>

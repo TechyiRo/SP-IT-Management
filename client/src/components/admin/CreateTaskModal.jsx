@@ -160,13 +160,16 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreate, onTaskU
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
+                    className="fixed inset-0 z-[100] flex flex-col items-center justify-start overflow-y-auto bg-black/60 backdrop-blur-sm p-2 sm:p-4 pt-4 sm:pt-10 pb-10"
+                    onClick={onClose}
                 >
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                        className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+                        onClick={e => e.stopPropagation()}
+                        className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl w-full max-w-4xl flex flex-col shrink-0 mb-10"
+                        style={{ maxHeight: 'calc(100% - 2rem)' }}
                     >
                         {/* Header */}
                         <div className="flex justify-between items-center p-6 border-b border-white/10 bg-white/5">

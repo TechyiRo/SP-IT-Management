@@ -229,13 +229,13 @@ const EmployeeWorkLog = () => {
     };
 
     return (
-        <div className="space-y-4 sm:space-y-6 relative">
-            <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Daily Work Log</h1>
+        <div className="space-y-4 sm:space-y-5 relative">
+            <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">Daily Work Log</h1>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
                 {/* Form */}
-                <div className="lg:col-span-1 glass-card p-4 sm:p-6 h-fit">
-                    <h3 className="text-base sm:text-lg font-bold mb-4 flex items-center justify-between">
+                <div className="lg:col-span-1 glass-card p-4 sm:p-5 lg:p-5 h-fit">
+                    <h3 className="text-base sm:text-lg font-bold mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <FileText className={`w-4 h-4 sm:w-5 sm:h-5 ${editModeId ? 'text-amber-400' : 'text-purple-400'}`} />
                             {editModeId ? 'Edit Work Log' : 'Log Work'}
@@ -247,11 +247,11 @@ const EmployeeWorkLog = () => {
                         )}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="text-sm text-gray-400 block mb-1">Work Title</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-gray-400 block mb-0.5 ml-1">Work Title</label>
                             <input
                                 required
-                                className="glass-input w-full"
+                                className="glass-input w-full h-10 text-sm"
                                 placeholder="What did you do?"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -259,33 +259,33 @@ const EmployeeWorkLog = () => {
                         </div>
 
                         {/* Dynamic Type Selection */}
-                        <div className="relative">
-                            <label className="text-sm text-gray-400 block mb-1 flex justify-between">
-                                Type
-                                <button type="button" onClick={() => setShowTypeManager(!showTypeManager)} className="text-xs text-cyan-400 hover:text-cyan-300">
-                                    {showTypeManager ? 'Close Manager' : 'Manage Types'}
+                        <div className="relative space-y-1">
+                            <label className="text-xs font-medium text-gray-400 block mb-0.5 ml-1 flex justify-between">
+                                Work Category
+                                <button type="button" onClick={() => setShowTypeManager(!showTypeManager)} className="text-[10px] text-cyan-400 hover:text-cyan-300">
+                                    {showTypeManager ? 'Close' : 'Manage'}
                                 </button>
                             </label>
 
                             {showTypeManager ? (
-                                <div className="bg-slate-900/90 border border-white/10 rounded-lg p-3 mb-2 animate-fade-in">
-                                    <div className="flex gap-2 mb-3">
+                                <div className="bg-slate-900/90 border border-white/10 rounded-lg p-2.5 mb-2 animate-fade-in">
+                                    <div className="flex gap-2 mb-2 text-sm">
                                         <input
-                                            className="glass-input flex-1 h-8 text-xs"
+                                            className="glass-input flex-1 h-8 text-[11px]"
                                             placeholder="New type..."
                                             value={newTypeInput}
                                             onChange={e => setNewTypeInput(e.target.value)}
                                         />
-                                        <button type="button" onClick={handleAddType} className="p-2 bg-cyan-600 rounded hover:bg-cyan-500 text-white">
-                                            <Plus size={14} />
+                                        <button type="button" onClick={handleAddType} className="p-1 px-2 mb-2 bg-cyan-600 rounded hover:bg-cyan-500 text-white">
+                                            <Plus size={12} />
                                         </button>
                                     </div>
-                                    <div className="max-h-32 overflow-y-auto space-y-1">
+                                    <div className="max-h-24 overflow-y-auto space-y-1">
                                         {workTypes.map(t => (
-                                            <div key={t} className="flex justify-between items-center text-xs bg-white/5 p-1.5 rounded">
+                                            <div key={t} className="flex justify-between items-center text-[10px] bg-white/5 p-1 rounded">
                                                 <span className="text-gray-300">{t}</span>
                                                 <button type="button" onClick={() => handleRemoveType(t)} className="text-red-400 hover:text-red-300">
-                                                    <Trash2 size={12} />
+                                                    <Trash2 size={10} />
                                                 </button>
                                             </div>
                                         ))}
@@ -293,7 +293,7 @@ const EmployeeWorkLog = () => {
                                 </div>
                             ) : (
                                 <select
-                                    className="glass-input w-full bg-slate-900"
+                                    className="glass-input w-full h-10 text-sm bg-slate-900"
                                     value={formData.type}
                                     onChange={e => setFormData({ ...formData, type: e.target.value })}
                                 >
@@ -351,21 +351,21 @@ const EmployeeWorkLog = () => {
                             )}
                         </div>
 
-                        <div>
-                            <label className="text-sm text-gray-400 block mb-1">Duration (HH:MM or Minutes)</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-gray-400 block mb-0.5 ml-1">Duration (HH:MM or min)</label>
                             <input
                                 required
                                 type="text"
-                                className="glass-input w-full"
+                                className="glass-input w-full h-10 text-sm"
                                 placeholder="e.g. 1:30 or 90"
                                 value={formData.duration}
                                 onChange={e => setFormData({ ...formData, duration: e.target.value })}
                             />
                         </div>
-                        <div>
-                            <label className="text-sm text-gray-400 block mb-1">Description</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-gray-400 block mb-0.5 ml-1">Detailed Description</label>
                             <textarea
-                                className="glass-input w-full h-32 resize-none"
+                                className="glass-input w-full h-24 lg:h-28 resize-none text-sm"
                                 placeholder="Details..."
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -473,9 +473,11 @@ const EmployeeWorkLog = () => {
                 </div>
 
                 {/* History */}
-                <div className="lg:col-span-2 glass-card p-6">
-                    <h3 className="text-lg font-bold mb-4">Recent Logs</h3>
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                <div className="lg:col-span-2 glass-card p-4 sm:p-5 lg:p-5 flex flex-col min-h-0">
+                    <h3 className="text-base sm:text-lg font-bold mb-3 flex items-center gap-2">
+                        <ListChecks className="text-cyan-400 w-5 h-5" /> Recent Logs
+                    </h3>
+                    <div className="space-y-3 pr-1 flex-1 custom-scrollbar">
                         {logs.length === 0 ? (
                             <p className="text-gray-500 text-center py-10">No work logs found.</p>
                         ) : (
@@ -530,8 +532,8 @@ const EmployeeWorkLog = () => {
             {/* Log Details Modal */}
             {
                 selectedLog && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 animate-fade-in" onClick={() => setSelectedLog(null)}>
-                        <div className="glass-card w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-black/80 backdrop-blur-sm p-2 sm:p-4 pt-10 pb-10 animate-fade-in" onClick={() => setSelectedLog(null)}>
+                        <div className="glass-card w-full max-w-2xl overflow-hidden flex flex-col shrink-0 mb-10" style={{ maxHeight: 'calc(100% - 2rem)' }} onClick={e => e.stopPropagation()}>
                             <div className="p-4 sm:p-6 border-b border-white/10 flex justify-between items-start shrink-0">
                                 <div>
                                     <h2 className="text-xl sm:text-2xl font-bold text-white line-clamp-1">{selectedLog.title}</h2>
@@ -541,7 +543,7 @@ const EmployeeWorkLog = () => {
                                     <X size={24} />
                                 </button>
                             </div>
-                            <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto custom-scrollbar">
+                            <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto custom-scrollbar flex-1">
                                 <div className="flex gap-4">
                                     <div className="bg-white/5 rounded-lg p-3 flex-1">
                                         <span className="text-xs text-gray-500 uppercase block mb-1">Work Type</span>
@@ -616,19 +618,21 @@ const EmployeeWorkLog = () => {
             }
 
             {/* Image Viewer Modal */}
-            {selectedImage && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
-                    <button className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/10 p-2 rounded-full backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
-                        <X size={24} />
-                    </button>
-                    <img
-                        src={selectedImage}
-                        alt="Attachment"
-                        className="max-w-full max-h-[90vh] object-contain rounded-lg border border-white/10 shadow-2xl"
-                        onClick={e => e.stopPropagation()}
-                    />
-                </div>
-            )}
+            {
+                selectedImage && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
+                        <button className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/10 p-2 rounded-full backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+                            <X size={24} />
+                        </button>
+                        <img
+                            src={selectedImage}
+                            alt="Attachment"
+                            className="max-w-full max-h-[90vh] object-contain rounded-lg border border-white/10 shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        />
+                    </div>
+                )
+            }
         </div >
     );
 };

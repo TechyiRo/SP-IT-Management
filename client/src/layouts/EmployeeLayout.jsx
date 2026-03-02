@@ -261,8 +261,8 @@ const EmployeeLayout = () => {
 
 
             {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-24 md:pb-8 pt-20 md:pt-8 scrollbar-hide">
-                <div className={`${themeParams.card} min-h-full p-4 md:p-6 animate-fade-in-up transition-colors duration-500`}>
+            <main className="flex-1 p-2 md:p-4 overflow-y-auto pb-24 md:pb-4 pt-20 md:pt-4">
+                <div className="min-h-full animate-fade-in-up transition-colors duration-500">
                     <Outlet context={{ currentTheme }} />
                 </div>
             </main>

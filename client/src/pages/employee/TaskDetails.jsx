@@ -37,8 +37,8 @@ function AttachmentViewer({ url, name, onClose }) {
     const isImg = isImageFile(name);
     const isPdf = isPdfFile(name);
     return (
-        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4" onClick={onClose}>
-            <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pt-4 sm:pt-10 pb-10" onClick={onClose}>
+            <div className="relative max-w-4xl w-full flex flex-col shrink-0 mb-10" style={{ maxHeight: 'calc(100% - 2rem)' }} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between bg-slate-900 border border-white/10 rounded-t-2xl px-5 py-3">
                     <div className="flex items-center gap-3">
