@@ -262,22 +262,31 @@ if (!fs.existsSync(uploadDir)) {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadDir)
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname))
+        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
     }
 });
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit per file
+    fileFilter: (req, file, cb) => {
+        // Allow images, pdfs, docs, and common office files
+        const allowed = /\.(jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar)$/i;
+        if (allowed.test(path.extname(file.originalname))) {
+            cb(null, true);
+        } else {
+            cb(new Error('File type not allowed'), false);
+        }
+    }
 });
 
 // @route   POST api/tasks/:id/updates
 // @desc    Add detailed task update/resolution log
 // @access  Private
-router.post('/:id/updates', [auth, upload.array('attachments', 3)], async (req, res) => {
+router.post('/:id/updates', [auth, upload.array('attachments', 10)], async (req, res) => {
     console.log(`POST /api/tasks/${req.params.id}/updates called by user ${req.user.id}`);
     try {
         const task = await Task.findById(req.params.id);
@@ -307,7 +316,7 @@ router.post('/:id/updates', [auth, upload.array('attachments', 3)], async (req, 
         console.log('Update Body:', req.body);
         console.log('Files:', req.files);
 
-        const attachments = req.files ? req.files.map(file => file.path) : [];
+        const attachments = req.files ? req.files.map(file => file.path.replace(/\\/g, '/')) : [];
 
         const newUpdate = {
             updatedBy: req.user.id,

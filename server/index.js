@@ -31,7 +31,8 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/tracking', require('./routes/tracking'));
 app.use('/api/payroll', require('./routes/payroll'));
 app.use('/api/credentials', require('./routes/credentials'));
-
+app.use('/api/vendors', require('./routes/vendors'));
+app.use('/api/prices', require('./routes/prices'));
 app.get('/', (req, res) => {
     res.send('SP IT Management API Running');
 });

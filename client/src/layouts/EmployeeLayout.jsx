@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee, MapPin, Palette, Key } from 'lucide-react';
+import { LogOut, Home, UserCheck, CheckSquare, FileText, Package, IndianRupee, MapPin, Palette, Key, Tag } from 'lucide-react';
 import clsx from 'clsx';
 import Notifications from '../components/ui/Notifications';
 import { useState, useEffect } from 'react';

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Send, FileText, Plus, X, Trash2, Building2, ListChecks, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
-
+import { Send, FileText, Plus, X, Trash2, Building2, ListChecks, CheckCircle2, ChevronDown, ChevronUp, Edit2, Paperclip, Link as LinkIcon, Calendar, Clock } from 'lucide-react';
 
 const EmployeeWorkLog = () => {
     const [logs, setLogs] = useState([]);
@@ -12,6 +11,13 @@ const EmployeeWorkLog = () => {
         description: '',
         company: ''
     });
+
+    const [attachments, setAttachments] = useState([]);
+    const [existingAttachments, setExistingAttachments] = useState([]);
+    const [editModeId, setEditModeId] = useState(null);
+
+    // Image Viewer Modal State
+    const [selectedImage, setSelectedImage] = useState(null);
 
     // Company & Steps State
     const [companies, setCompanies] = useState([]);
@@ -118,18 +124,41 @@ const EmployeeWorkLog = () => {
     };
 
     const handleSubmit = async (e) => {
-
         e.preventDefault();
         try {
-            const payload = {
-                ...formData,
-                company: formData.company || null,
-                duration: parseDuration(formData.duration),
-                steps: steps
-            };
-            await api.post('/api/work', payload);
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('type', formData.type);
+            submitData.append('duration', parseDuration(formData.duration));
+            submitData.append('description', formData.description);
+            if (formData.company) submitData.append('company', formData.company);
+            submitData.append('steps', JSON.stringify(steps));
+
+            if (editModeId) {
+                submitData.append('existingAttachments', JSON.stringify(existingAttachments));
+            }
+
+            attachments.forEach(file => {
+                submitData.append('attachments', file);
+            });
+
+            if (editModeId) {
+                await api.put(`/api/work/${editModeId}`, submitData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+            } else {
+                await api.post('/api/work', submitData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+            }
+
+            // Reset
             setFormData({ title: '', type: workTypes[0] || '', duration: '', description: '', company: '' });
             setSteps([]);
+            setAttachments([]);
+            setExistingAttachments([]);
+            setEditModeId(null);
+
             fetchLogs();
         } catch (err) {
             console.error("Work Log Check:", err);
@@ -157,6 +186,48 @@ const EmployeeWorkLog = () => {
         }
     };
 
+    const handleEditClick = (log) => {
+        setEditModeId(log._id);
+        setFormData({
+            title: log.title,
+            type: log.type,
+            duration: log.duration,
+            description: log.description || '',
+            company: typeof log.company === 'object' ? log.company?._id : (log.company || '')
+        });
+        setSteps(log.steps || []);
+        setExistingAttachments(log.attachments || []);
+        setAttachments([]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancelEdit = () => {
+        setEditModeId(null);
+        setFormData({ title: '', type: workTypes[0] || '', duration: '', description: '', company: '' });
+        setSteps([]);
+        setAttachments([]);
+        setExistingAttachments([]);
+    };
+
+    const handleFileChange = (e) => {
+        setAttachments(Array.from(e.target.files));
+    };
+
+    const removeExistingAttachment = (url) => {
+        setExistingAttachments(existingAttachments.filter(att => att !== url));
+    };
+
+    const getFileUrl = (filePath) => {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        // Remove leading slash if present to avoid double slashes
+        const cleanPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+        return `${baseUrl}/${cleanPath}`;
+    };
+
+    const isImage = (filePath) => {
+        return filePath.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+    };
+
     return (
         <div className="space-y-6 relative">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Daily Work Log</h1>
@@ -164,9 +235,16 @@ const EmployeeWorkLog = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Form */}
                 <div className="lg:col-span-1 glass-card p-6 h-fit">
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-purple-400" />
-                        Log Work
+                    <h3 className="text-lg font-bold mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <FileText className={`w-5 h-5 ${editModeId ? 'text-amber-400' : 'text-purple-400'}`} />
+                            {editModeId ? 'Edit Work Log' : 'Log Work'}
+                        </div>
+                        {editModeId && (
+                            <button onClick={handleCancelEdit} className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                                <X size={14} /> Cancel
+                            </button>
+                        )}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
@@ -352,9 +430,44 @@ const EmployeeWorkLog = () => {
                             </div>
                         </div>
 
-                        <button type="submit" className="glass-button w-full flex justify-center items-center gap-2">
-                            <Send className="w-4 h-4" />
-                            Submit Log
+                        {/* Attachments Section */}
+                        <div className="space-y-2">
+                            <label className="text-sm text-gray-400 block flex items-center gap-2">
+                                <Paperclip size={16} className="text-purple-400" /> Attachments
+                            </label>
+
+                            {/* Existing files (if editing) */}
+                            {editModeId && existingAttachments.length > 0 && (
+                                <div className="space-y-2 mb-3">
+                                    <span className="text-xs text-gray-500 uppercase">Current Files</span>
+                                    {existingAttachments.map((att, i) => (
+                                        <div key={i} className="flex justify-between items-center text-xs bg-white/5 p-2 rounded border border-white/5">
+                                            <div
+                                                onClick={() => isImage(att) ? setSelectedImage(getFileUrl(att)) : window.open(getFileUrl(att), '_blank')}
+                                                className="text-cyan-400 hover:underline flex items-center gap-2 truncate pr-2 cursor-pointer"
+                                            >
+                                                <Paperclip size={12} /> {att.split('/').pop()}
+                                            </div>
+                                            <button type="button" onClick={() => removeExistingAttachment(att)} className="text-red-400 hover:text-red-300 ml-2 shrink-0">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* New Files */}
+                            <input
+                                type="file"
+                                multiple
+                                onChange={handleFileChange}
+                                className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-600/20 file:text-purple-400 hover:file:bg-purple-600/30 transition-colors"
+                            />
+                        </div>
+
+                        <button type="submit" className={`glass-button w-full flex justify-center items-center gap-2 ${editModeId ? 'border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : ''}`}>
+                            {editModeId ? <Edit2 className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                            {editModeId ? 'Update Log' : 'Submit Log'}
                         </button>
                     </form>
                 </div>
@@ -373,10 +486,19 @@ const EmployeeWorkLog = () => {
                                     className="bg-white/5 rounded-xl p-4 border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                                 >
                                     <div className="flex justify-between items-start mb-2">
-                                        <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">{log.title}</h4>
-                                        <span className="text-xs text-gray-400">{new Date(log.date).toLocaleDateString()}</span>
+                                        <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors" onClick={() => setSelectedLog(log)}>{log.title}</h4>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs text-gray-400">{new Date(log.date).toLocaleDateString()}</span>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleEditClick(log); }}
+                                                className="text-gray-500 hover:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                                title="Edit Log"
+                                            >
+                                                <Edit2 size={14} />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 text-xs mb-3">
+                                    <div className="flex flex-wrap gap-2 text-xs mb-3" onClick={() => setSelectedLog(log)}>
                                         <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">{log.type}</span>
                                         <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30 font-mono">
                                             {formatDuration(log.duration)}
@@ -391,8 +513,13 @@ const EmployeeWorkLog = () => {
                                                 <ListChecks size={10} /> {log.steps.length} Steps
                                             </span>
                                         )}
+                                        {log.attachments && log.attachments.length > 0 && (
+                                            <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                                                <Paperclip size={10} /> {log.attachments.length} Attachments
+                                            </span>
+                                        )}
                                     </div>
-                                    <p className="text-sm text-gray-400 line-clamp-2">{log.description}</p>
+                                    <p className="text-sm text-gray-400 line-clamp-2" onClick={() => setSelectedLog(log)}>{log.description}</p>
                                 </div>
                             ))
                         )}
@@ -453,6 +580,32 @@ const EmployeeWorkLog = () => {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Links & Attachments Modal View */}
+                                {(selectedLog.links?.length > 0 || selectedLog.attachments?.length > 0) && (
+                                    <div className="pt-4 border-t border-white/10">
+                                        <span className="text-sm text-gray-500 uppercase block mb-3 font-bold flex items-center gap-2">
+                                            <Paperclip size={14} /> Attachments & Resources
+                                        </span>
+                                        <div className="flex flex-wrap gap-3">
+                                            {selectedLog.links?.map((link, i) => (
+                                                <a key={i} href={link} target="_blank" rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 text-sm transition-colors">
+                                                    <LinkIcon size={14} /> Link {i + 1}
+                                                </a>
+                                            ))}
+                                            {selectedLog.attachments?.map((att, i) => (
+                                                <div
+                                                    key={i}
+                                                    onClick={() => isImage(att) ? setSelectedImage(getFileUrl(att)) : window.open(getFileUrl(att), '_blank')}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-sm transition-colors cursor-pointer"
+                                                >
+                                                    <Paperclip size={14} /> {att.split(/[\\/]/).pop()}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="p-4 bg-black/20 text-right">
                                 <button onClick={() => setSelectedLog(null)} className="px-4 py-2 text-sm text-gray-300 hover:text-white">Close</button>
@@ -461,6 +614,21 @@ const EmployeeWorkLog = () => {
                     </div>
                 )
             }
+
+            {/* Image Viewer Modal */}
+            {selectedImage && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
+                    <button className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/10 p-2 rounded-full backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+                        <X size={24} />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Attachment"
+                        className="max-w-full max-h-[90vh] object-contain rounded-lg border border-white/10 shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div >
     );
 };

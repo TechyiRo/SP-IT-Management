@@ -6,6 +6,7 @@ const WorkDetails = () => {
     const [logs, setLogs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedLog, setSelectedLog] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null); // Added for image viewing
 
     useEffect(() => {
         fetchLogs();
@@ -29,6 +30,16 @@ const WorkDetails = () => {
         return new Date(dateString).toLocaleDateString('en-US', {
             weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
         });
+    };
+
+    const getFileUrl = (filePath) => {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const cleanPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+        return `${baseUrl}/${cleanPath}`;
+    };
+
+    const isImage = (filePath) => {
+        return filePath.match(/\.(jpeg|jpg|gif|png|webp)$/i);
     };
 
     return (
@@ -85,9 +96,9 @@ const WorkDetails = () => {
                                     <td className="p-4 font-medium text-gray-300 group-hover:text-white transition-colors">{log.title}</td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded text-xs border ${log.type === 'Development' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                log.type === 'Bug Fix' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                    log.type === 'Meeting' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                        'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                            log.type === 'Bug Fix' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                log.type === 'Meeting' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
                                             }`}>
                                             {log.type}
                                         </span>
@@ -112,8 +123,8 @@ const WorkDetails = () => {
                                     <span className="flex items-center gap-1"><Calendar size={14} /> {formatDate(selectedLog.date)}</span>
                                     <span className="flex items-center gap-1"><Clock size={14} /> {selectedLog.duration} mins</span>
                                     <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs border ${selectedLog.status === 'Complete' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                            selectedLog.status === 'Working' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                        selectedLog.status === 'Working' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                            'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
                                         }`}>
                                         {selectedLog.status}
                                     </span>
@@ -197,16 +208,34 @@ const WorkDetails = () => {
                                             </a>
                                         ))}
                                         {selectedLog.attachments?.map((att, i) => (
-                                            <a key={i} href={att} target="_blank" rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20 text-xs transition-colors">
-                                                <Paperclip size={12} /> Attachment {i + 1}
-                                            </a>
+                                            <div
+                                                key={i}
+                                                onClick={() => isImage(att) ? setSelectedImage(getFileUrl(att)) : window.open(getFileUrl(att), '_blank')}
+                                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20 text-xs transition-colors cursor-pointer"
+                                            >
+                                                <Paperclip size={12} /> {att.split(/[\\/]/).pop()}
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Image Viewer Modal */}
+            {selectedImage && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
+                    <button className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/10 p-2 rounded-full backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+                        <X size={24} />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Attachment"
+                        className="max-w-full max-h-[90vh] object-contain rounded-lg border border-white/10 shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    />
                 </div>
             )}
         </div>
