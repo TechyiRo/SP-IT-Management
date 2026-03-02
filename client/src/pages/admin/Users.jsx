@@ -166,16 +166,16 @@ const Users = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">User Management</h1>
-                    <p className="text-sm text-gray-400">Manage employees, roles, and permissions</p>
+                    <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">User Management</h1>
+                    <p className="text-xs sm:text-sm text-gray-400">Manage employees, roles, and permissions</p>
                 </div>
                 <button
                     onClick={openCreateModal}
-                    className="glass-button flex items-center gap-2 group"
+                    className="glass-button flex items-center justify-center gap-2 group w-full sm:w-auto py-2.5 sm:py-2 text-sm"
                 >
-                    <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                     Add New User
                 </button>
             </div>
@@ -193,71 +193,124 @@ const Users = () => {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-white/5 border-b border-white/10 uppercase text-xs text-gray-400">
-                        <tr>
-                            <th className="p-4">Employee</th>
-                            <th className="p-4">Role</th>
-                            <th className="p-4">Department</th>
-                            <th className="p-4">Base Salary</th>
-                            <th className="p-4">Status</th>
-                            <th className="p-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                        {loading ? (
-                            <tr><td colSpan="5" className="p-8 text-center"><div className="animate-pulse text-cyan-400">Loading users...</div></td></tr>
-                        ) : filteredUsers.length === 0 ? (
-                            <tr><td colSpan="5" className="p-8 text-center text-gray-500">No users found</td></tr>
-                        ) : filteredUsers.map(user => (
-                            <tr key={user._id} className="hover:bg-white/5 transition-colors group">
-                                <td className="p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow overflow-hidden">
-                                            {user.profilePicture ? (
-                                                <img
-                                                    src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
-                                                    alt={user.fullName}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                user.fullName ? user.fullName.charAt(0) : 'U'
-                                            )}
-                                        </div>
-                                        <div>
-                                            <div className="font-medium text-white">{user.fullName || 'No Name'}</div>
-                                            <div className="text-sm text-gray-400">@{user.username}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="p-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'}`}>
-                                        {user.role}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-gray-300">{user.department}</td>
-                                <td className="p-4 text-emerald-400 font-mono">₹ {(user.baseSalary || 0).toLocaleString()}</td>
-                                <td className="p-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium max-w-fit flex items-center gap-1 ${user.status === 'active' ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                                        {user.status}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-right">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => handleEdit(user)} className="p-2 hover:bg-white/10 rounded-lg text-cyan-400 transition-colors" title="Edit">
-                                            <Edit2 className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => handleDelete(user._id)} className="p-2 hover:bg-white/10 rounded-lg text-red-400 transition-colors" title="Delete">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </td>
+            <div className="space-y-4">
+                {/* Desktop Table */}
+                <div className="hidden md:block glass-card overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead className="bg-white/5 border-b border-white/10 uppercase text-xs text-gray-400">
+                            <tr>
+                                <th className="p-4">Employee</th>
+                                <th className="p-4">Role</th>
+                                <th className="p-4">Department</th>
+                                <th className="p-4">Base Salary</th>
+                                <th className="p-4">Status</th>
+                                <th className="p-4 text-right">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-white/10">
+                            {loading ? (
+                                <tr><td colSpan="5" className="p-8 text-center"><div className="animate-pulse text-cyan-400">Loading users...</div></td></tr>
+                            ) : filteredUsers.length === 0 ? (
+                                <tr><td colSpan="5" className="p-8 text-center text-gray-500">No users found</td></tr>
+                            ) : filteredUsers.map(user => (
+                                <tr key={user._id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow overflow-hidden">
+                                                {user.profilePicture ? (
+                                                    <img
+                                                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
+                                                        alt={user.fullName}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    user.fullName ? user.fullName.charAt(0) : 'U'
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-white">{user.fullName || 'No Name'}</div>
+                                                <div className="text-sm text-gray-400">@{user.username}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'}`}>
+                                            {user.role}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-gray-300">{user.department}</td>
+                                    <td className="p-4 text-emerald-400 font-mono">₹ {(user.baseSalary || 0).toLocaleString()}</td>
+                                    <td className="p-4">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium max-w-fit flex items-center gap-1 ${user.status === 'active' ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                                            {user.status}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleEdit(user)} className="p-2 hover:bg-white/10 rounded-lg text-cyan-400 transition-colors" title="Edit">
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => handleDelete(user._id)} className="p-2 hover:bg-white/10 rounded-lg text-red-400 transition-colors" title="Delete">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile View (Cards) */}
+                <div className="md:hidden space-y-3">
+                    {loading ? (
+                        <div className="p-8 text-center"><div className="animate-pulse text-cyan-400">Loading users...</div></div>
+                    ) : filteredUsers.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500">No users found</div>
+                    ) : (
+                        filteredUsers.map(user => (
+                            <div key={user._id} className="glass-card p-4 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white overflow-hidden shadow-lg">
+                                        {user.profilePicture ? (
+                                            <img src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`} alt="" className="w-full h-full object-cover" />
+                                        ) : (user.fullName?.charAt(0))}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-white text-sm truncate">{user.fullName}</h3>
+                                        <p className="text-[10px] text-gray-500">@{user.username}</p>
+                                    </div>
+                                    <div className={`px-2 py-0.5 rounded text-[10px] border ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'}`}>
+                                        {user.role}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 py-2 border-y border-white/5">
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Department</p>
+                                        <p className="text-gray-300 text-xs">{user.department}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Status</p>
+                                        <div className="flex items-center gap-1.5 capitalize">
+                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`} />
+                                            <span className={`text-xs ${user.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>{user.status}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <span className="text-emerald-400 font-mono text-sm">₹ {user.baseSalary?.toLocaleString()}</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleEdit(user)} className="p-2 bg-white/5 rounded-lg text-cyan-400 active:scale-95 transition-all"><Edit2 size={14} /></button>
+                                        <button onClick={() => handleDelete(user._id)} className="p-2 bg-white/5 rounded-lg text-red-400 active:scale-95 transition-all"><Trash2 size={14} /></button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editMode ? "Edit User" : "Create New User"}>
@@ -266,7 +319,7 @@ const Users = () => {
                     <div className="space-y-4">
                         <h4 className="text-sm uppercase tracking-wider text-gray-500 font-semibold border-b border-gray-700 pb-2">Basic Information</h4>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-medium text-gray-400">Username</label>
                                 <input required className="glass-input w-full" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
@@ -302,7 +355,7 @@ const Users = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-medium text-gray-400">Email</label>
                                 <input required type="email" className="glass-input w-full" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />

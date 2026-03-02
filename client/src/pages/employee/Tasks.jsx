@@ -105,8 +105,10 @@ function StatusCard({ config, count, isActive, onClick, index }) {
         const el = cardRef.current;
         if (!el) return;
         const rect = el.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
-        const y = ((e.clientY - rect.top) / rect.height - 0.5) * -20;
+        // Reduce sensitivity for a smoother experience, especially on small screens
+        const sensitivity = window.innerWidth < 768 ? 10 : 20;
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * sensitivity;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * -sensitivity;
         setTilt({ x, y });
     };
 
@@ -267,10 +269,10 @@ const EmployeeTasks = () => {
             {/* ── Page Header ── */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+                    <h1 className="text-2xl sm:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
                         My Tasks 🎯
                     </h1>
-                    <p className="text-gray-400 text-sm mt-1">Click a status card to filter your tasks</p>
+                    <p className="text-gray-400 text-[10px] sm:text-sm mt-1">Tap a card to filter your tasks</p>
                 </div>
                 {activeFilter !== 'all' && (
                     <button
@@ -284,7 +286,7 @@ const EmployeeTasks = () => {
             </div>
 
             {/* ── 3D Status Cards Grid ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                 {STATUS_CONFIG.map((config, i) => (
                     <StatusCard
                         key={config.key}
@@ -368,8 +370,9 @@ function TaskCard({ task, cfg, idx, onNavigate }) {
         const el = ref.current;
         if (!el) return;
         const rect = el.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 12;
-        const y = ((e.clientY - rect.top) / rect.height - 0.5) * -12;
+        const sensitivity = window.innerWidth < 768 ? 6 : 12;
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * sensitivity;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * -sensitivity;
         setTilt({ x, y });
     };
 

@@ -239,7 +239,7 @@ export default function AdminTaskDetails() {
                 </button>
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h1 className="text-2xl font-black text-white">{task.title}</h1>
+                        <h1 className="text-xl sm:text-2xl font-black text-white truncate">{task.title}</h1>
                         <PriorityBadge priority={task.priority} />
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
@@ -272,14 +272,14 @@ export default function AdminTaskDetails() {
                 {/* Left: Tabs + Content */}
                 <div className="lg:col-span-2 space-y-4">
                     {/* Tabs */}
-                    <div className="flex border-b border-white/10 gap-1">
+                    <div className="flex border-b border-white/10 gap-1 overflow-x-auto scrollbar-hide">
                         {[
-                            { key: 'tracking', label: '📋 Resolution Logs' },
-                            { key: 'details', label: '📄 Task Details' },
-                            { key: 'activity', label: '⏱️ Activity' },
+                            { key: 'tracking', label: 'Logs' },
+                            { key: 'details', label: 'Details' },
+                            { key: 'activity', label: 'Activity' },
                         ].map(tab => (
                             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                                className={`px-5 py-3 text-sm font-semibold relative transition-colors ${activeTab === tab.key ? 'text-white' : 'text-gray-500 hover:text-gray-300'
+                                className={`px-4 sm:px-5 py-3 text-xs sm:text-sm font-semibold relative transition-colors whitespace-nowrap ${activeTab === tab.key ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                                     }`}>
                                 {tab.label}
                                 {activeTab === tab.key && (
@@ -298,7 +298,7 @@ export default function AdminTaskDetails() {
                                         <div key={i} className="relative pl-8">
                                             <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-slate-950 border-2 border-purple-500 z-10" />
 
-                                            <div className="glass-card p-5 border border-white/8 hover:border-white/14 transition-all space-y-4">
+                                            <div className="glass-card p-4 sm:p-5 border border-white/8 hover:border-white/14 transition-all space-y-4">
                                                 {/* Header */}
                                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                                     <div>
@@ -478,10 +478,9 @@ export default function AdminTaskDetails() {
                 </div>
 
                 {/* ══ Right Sidebar: Admin Controls ══ */}
-                <div className="space-y-5">
-
+                <div className="space-y-5 px-0.5 lg:px-0">
                     {/* Admin Control Panel */}
-                    <div className="glass-card p-6 space-y-5 border-t-2 border-purple-500">
+                    <div className="glass-card p-5 sm:p-6 space-y-5 border-t-2 border-purple-500">
                         <h3 className="text-base font-bold text-white flex items-center gap-2">
                             <Shield size={16} className="text-purple-400" /> Admin Controls
                         </h3>

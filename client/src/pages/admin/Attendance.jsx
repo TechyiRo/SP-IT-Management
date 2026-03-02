@@ -162,8 +162,8 @@ const Attendance = () => {
     };
 
     return (
-        <div className="space-y-8 pb-20">
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 mb-6">Attendance & Approvals</h1>
+        <div className="space-y-6 sm:space-y-8 pb-20">
+            <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 sm:mb-6">Attendance & Approvals</h1>
 
             {/* Pending Actions */}
             {pendingRequests.length > 0 && (
@@ -264,100 +264,148 @@ const Attendance = () => {
             )}
 
             {/* Filters */}
-            <div className="glass-card p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full md:w-96">
+            <div className="glass-card p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="relative w-full sm:w-96">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
                         type="text"
-                        placeholder="Search by employee name or ID..."
-                        className="glass-input w-full pl-10"
+                        placeholder="Search employee..."
+                        className="glass-input w-full pl-10 h-10 text-sm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    <span className="text-gray-400 text-sm">Filter Date:</span>
-                    <input type="date" className="glass-input" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
-                    {filterDate && <button onClick={() => setFilterDate('')} className="text-cyan-400 text-sm">Clear</button>}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <span className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">Date:</span>
+                    <input type="date" className="glass-input flex-1 sm:flex-none h-10 text-sm" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+                    {filterDate && <button onClick={() => setFilterDate('')} className="text-cyan-400 text-xs sm:text-sm ml-1">Clear</button>}
                 </div>
             </div>
 
-            {/* Main Table */}
-            <div className="glass-card overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-white/5 border-b border-white/10 uppercase text-xs text-gray-400">
-                        <tr>
-                            <th className="p-4 font-semibold">Employee</th>
-                            <th className="p-4 font-semibold">Date</th>
-                            <th className="p-4 font-semibold">Check In</th>
-                            <th className="p-4 font-semibold">Location</th>
-                            <th className="p-4 font-semibold">Check Out</th>
-                            <th className="p-4 font-semibold">Duration</th>
-                            <th className="p-4 font-semibold">Status</th>
-                            <th className="p-4 font-semibold">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                        {loading ? (
-                            <tr><td colSpan="7" className="p-8 text-center animate-pulse text-gray-400">Loading records...</td></tr>
-                        ) : filteredAttendance.length === 0 ? (
-                            <tr><td colSpan="7" className="p-8 text-center text-gray-500">No attendance records found</td></tr>
-                        ) : (
-                            filteredAttendance.map(record => (
-                                <tr key={record._id} className="hover:bg-white/5 transition-colors">
-                                    <td className="p-4">
-                                        <div>
-                                            <div className="font-medium text-white">{record.employee?.fullName || 'Unknown'}</div>
-                                            <div className="text-xs text-gray-400">{record.employee?.employeeId}</div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-gray-300 whitespace-nowrap">{formatDate(record.date)}</td>
-                                    <td className="p-4 text-emerald-400 font-mono text-sm">
-                                        {record.checkIn?.time ? formatTime(record.checkIn.time) : '-'}
-                                    </td>
-                                    <td className="p-4 text-gray-300 text-sm">
-                                        {record.location && record.location.startsWith('http') ? (
-                                            <a href={record.location} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
-                                                <MapPin size={14} /> View
-                                            </a>
-                                        ) : (
-                                            <span className="flex items-center gap-1 text-gray-500">
-                                                <MapPin size={14} /> {record.location || '-'}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="p-4 text-orange-400 font-mono text-sm">
-                                        {record.checkOut?.time ? formatTime(record.checkOut.time) : '-'}
-                                    </td>
-                                    <td className="p-4 text-cyan-300 font-mono text-sm">
-                                        {record.duration ? `${Math.floor(record.duration / 60)}h ${record.duration % 60}m` : '-'}
-                                    </td>
-                                    <td className="p-4">
-                                        <StatusBadge status={record.status} />
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => openEditModal(record)}
-                                                className="p-2 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-400 hover:text-cyan-300 transition-colors"
-                                                title="Edit Manually"
-                                            >
-                                                <Edit size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(record._id)}
-                                                className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-300 transition-colors"
-                                                title="Delete Record"
-                                            >
-                                                <LogOut size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+            {/* Main Records */}
+            <div className="space-y-4">
+                {/* Desktop Table */}
+                <div className="hidden lg:block glass-card overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead className="bg-white/5 border-b border-white/10 uppercase text-xs text-gray-400">
+                            <tr>
+                                <th className="p-4 font-semibold">Employee</th>
+                                <th className="p-4 font-semibold">Date</th>
+                                <th className="p-4 font-semibold">Check In</th>
+                                <th className="p-4 font-semibold">Location</th>
+                                <th className="p-4 font-semibold">Check Out</th>
+                                <th className="p-4 font-semibold">Duration</th>
+                                <th className="p-4 font-semibold">Status</th>
+                                <th className="p-4 font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/10">
+                            {loading ? (
+                                <tr><td colSpan="7" className="p-8 text-center animate-pulse text-gray-400">Loading records...</td></tr>
+                            ) : filteredAttendance.length === 0 ? (
+                                <tr><td colSpan="7" className="p-8 text-center text-gray-500">No attendance records found</td></tr>
+                            ) : (
+                                filteredAttendance.map(record => (
+                                    <tr key={record._id} className="hover:bg-white/5 transition-colors">
+                                        <td className="p-4">
+                                            <div>
+                                                <div className="font-medium text-white">{record.employee?.fullName || 'Unknown'}</div>
+                                                <div className="text-xs text-gray-400">{record.employee?.employeeId}</div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-gray-300 whitespace-nowrap">{formatDate(record.date)}</td>
+                                        <td className="p-4 text-emerald-400 font-mono text-sm">
+                                            {record.checkIn?.time ? formatTime(record.checkIn.time) : '-'}
+                                        </td>
+                                        <td className="p-4 text-gray-300 text-sm">
+                                            {record.location && record.location.startsWith('http') ? (
+                                                <a href={record.location} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                                                    <MapPin size={14} /> View
+                                                </a>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-gray-500">
+                                                    <MapPin size={14} /> {record.location || '-'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="p-4 text-orange-400 font-mono text-sm">
+                                            {record.checkOut?.time ? formatTime(record.checkOut.time) : '-'}
+                                        </td>
+                                        <td className="p-4 text-cyan-300 font-mono text-sm">
+                                            {record.duration ? `${Math.floor(record.duration / 60)}h ${record.duration % 60}m` : '-'}
+                                        </td>
+                                        <td className="p-4">
+                                            <StatusBadge status={record.status} />
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => openEditModal(record)}
+                                                    className="p-2 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-400 hover:text-cyan-300 transition-colors"
+                                                    title="Edit Manually"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(record._id)}
+                                                    className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-300 transition-colors"
+                                                    title="Delete Record"
+                                                >
+                                                    <LogOut size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile View (Cards) */}
+                <div className="lg:hidden space-y-3">
+                    {loading ? (
+                        <div className="p-8 text-center animate-pulse text-gray-400">Loading records...</div>
+                    ) : filteredAttendance.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500 underline decoration-slate-900">No attendance records found</div>
+                    ) : (
+                        filteredAttendance.map(record => (
+                            <div key={record._id} className="glass-card p-4 space-y-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-white text-sm">{record.employee?.fullName || 'Unknown'}</div>
+                                        <div className="text-[10px] text-gray-500 font-mono">{formatDate(record.date)}</div>
+                                    </div>
+                                    <StatusBadge status={record.status} />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 py-2 border-y border-white/5">
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Check In</p>
+                                        <p className="text-emerald-400 text-xs font-mono">{record.checkIn?.time ? formatTime(record.checkIn.time) : '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Check Out</p>
+                                        <p className="text-orange-400 text-xs font-mono">{record.checkOut?.time ? formatTime(record.checkOut.time) : '-'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-gray-400 flex items-center gap-1.5 min-w-0">
+                                        <MapPin size={10} className="shrink-0" />
+                                        <span className="truncate">
+                                            {record.location && record.location.startsWith('http') ? 'Live Location' : (record.location || 'Office')}
+                                        </span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => openEditModal(record)} className="p-2 bg-white/5 rounded-lg text-cyan-400 active:scale-95 transition-all"><Edit size={14} /></button>
+                                        <button onClick={() => handleDelete(record._id)} className="p-2 bg-white/5 rounded-lg text-red-400 active:scale-95 transition-all"><LogOut size={14} /></button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
 
             {/* Edit Modal */}

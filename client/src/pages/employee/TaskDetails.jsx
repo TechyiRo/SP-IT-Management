@@ -344,7 +344,7 @@ export default function TaskDetails() {
                     <ArrowLeft size={18} />
                 </button>
                 <div className="flex-1 min-w-0">
-                    <h1 className="text-2xl font-black text-white leading-tight">{task.title}</h1>
+                    <h1 className="text-xl sm:text-2xl font-black text-white leading-tight truncate">{task.title}</h1>
                     <div className="flex flex-wrap items-center gap-2 mt-2">
                         <PriorityBadge priority={task.priority} />
                         <span className={`text-xs px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${sc.badge}`}>
@@ -364,9 +364,9 @@ export default function TaskDetails() {
             </div>
 
             {/* ══ Status Pipeline ══ */}
-            <div className="glass-card p-5">
-                <p className="text-xs text-gray-500 uppercase font-semibold tracking-widest mb-4">Task Progress</p>
-                <div className="flex items-center">
+            <div className="glass-card p-4 sm:p-5">
+                <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-widest mb-4">Task Progress</p>
+                <div className="flex items-center overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
                     {STATUS_STEPS.map((step, idx) => {
                         const done = idx < currentIdx;
                         const current = idx === currentIdx;
@@ -407,7 +407,7 @@ export default function TaskDetails() {
             </div>
 
             {/* ══ Tabs ══ */}
-            <div className="flex border-b border-white/10 gap-1">
+            <div className="flex border-b border-white/10 gap-1 overflow-x-auto scrollbar-hide">
                 {[
                     { key: 'workflow', label: '🛠️ Log Work', icon: CheckSquare },
                     { key: 'overview', label: '📋 Overview', icon: CheckSquare },
@@ -416,7 +416,7 @@ export default function TaskDetails() {
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`px-5 py-3 text-sm font-semibold relative transition-colors ${activeTab === tab.key ? 'text-white' : 'text-gray-500 hover:text-gray-300'
+                        className={`px-4 sm:px-5 py-3 text-xs sm:text-sm font-semibold relative transition-colors whitespace-nowrap ${activeTab === tab.key ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                             }`}
                     >
                         {tab.label}
@@ -456,13 +456,13 @@ export default function TaskDetails() {
                                     </div>
 
                                     {/* Success Icon */}
-                                    <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-emerald-600 to-green-400 flex items-center justify-center animate-success-glow shadow-2xl shadow-emerald-500/50 border-4 border-white/20">
-                                        <Check size={56} className="text-white drop-shadow-lg" strokeWidth={3} />
+                                    <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-emerald-600 to-green-400 flex items-center justify-center animate-success-glow shadow-2xl shadow-emerald-500/50 border-4 border-white/20">
+                                        <Check size={40} className="text-white drop-shadow-lg sm:size-[56px]" strokeWidth={3} />
                                     </div>
 
                                     {/* Text Content */}
-                                    <div className="text-center space-y-2 animate-rotate-in">
-                                        <h2 className="text-4xl font-black text-white tracking-tight">Success!</h2>
+                                    <div className="text-center space-y-2 animate-rotate-in px-4">
+                                        <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Success!</h2>
                                         <p className="text-emerald-400 font-bold uppercase tracking-widest text-xs">Work log submitted successfully</p>
                                     </div>
                                 </div>
@@ -554,11 +554,11 @@ export default function TaskDetails() {
                         </div>
 
                         {/* Update Status — full width standalone card */}
-                        <div className="glass-card p-5 space-y-3 border border-purple-500/20">
-                            <label className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <div className="glass-card p-4 sm:p-5 space-y-3 border border-purple-500/20">
+                            <label className="text-[10px] sm:text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
                                 <CheckCircle size={11} /> Update Task Status
                             </label>
-                            <div className="grid grid-cols-5 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                                 {STATUS_STEPS.map(s => {
                                     const icons = { 'Pending': '⏳', 'In Progress': '⚡', 'On Hold': '⏸️', 'Resolved': '✅', 'Completed': '🏆' };
                                     const colors = {

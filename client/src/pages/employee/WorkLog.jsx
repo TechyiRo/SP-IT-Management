@@ -229,15 +229,15 @@ const EmployeeWorkLog = () => {
     };
 
     return (
-        <div className="space-y-6 relative">
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Daily Work Log</h1>
+        <div className="space-y-4 sm:space-y-6 relative">
+            <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Daily Work Log</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Form */}
-                <div className="lg:col-span-1 glass-card p-6 h-fit">
-                    <h3 className="text-lg font-bold mb-4 flex items-center justify-between">
+                <div className="lg:col-span-1 glass-card p-4 sm:p-6 h-fit">
+                    <h3 className="text-base sm:text-lg font-bold mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <FileText className={`w-5 h-5 ${editModeId ? 'text-amber-400' : 'text-purple-400'}`} />
+                            <FileText className={`w-4 h-4 sm:w-5 sm:h-5 ${editModeId ? 'text-amber-400' : 'text-purple-400'}`} />
                             {editModeId ? 'Edit Work Log' : 'Log Work'}
                         </div>
                         {editModeId && (
@@ -375,7 +375,7 @@ const EmployeeWorkLog = () => {
 
                         {/* Steps Section */}
                         <div className="space-y-3">
-                            <label className="text-sm text-gray-400 block flex items-center gap-2">
+                            <label className="text-xs sm:text-sm text-gray-400 block flex items-center gap-2">
                                 <ListChecks size={16} className="text-cyan-400" /> Steps / Tasks Completed
                             </label>
 
@@ -530,18 +530,18 @@ const EmployeeWorkLog = () => {
             {/* Log Details Modal */}
             {
                 selectedLog && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setSelectedLog(null)}>
-                        <div className="glass-card w-full max-w-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-                            <div className="p-6 border-b border-white/10 flex justify-between items-start">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 animate-fade-in" onClick={() => setSelectedLog(null)}>
+                        <div className="glass-card w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                            <div className="p-4 sm:p-6 border-b border-white/10 flex justify-between items-start shrink-0">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-white">{selectedLog.title}</h2>
-                                    <p className="text-sm text-gray-400 mt-1">Logged on {new Date(selectedLog.date).toLocaleString()}</p>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-white line-clamp-1">{selectedLog.title}</h2>
+                                    <p className="text-[10px] sm:text-sm text-gray-400 mt-1">Logged on {new Date(selectedLog.date).toLocaleString()}</p>
                                 </div>
                                 <button onClick={() => setSelectedLog(null)} className="text-gray-400 hover:text-white p-1">
                                     <X size={24} />
                                 </button>
                             </div>
-                            <div className="p-6 space-y-6">
+                            <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto custom-scrollbar">
                                 <div className="flex gap-4">
                                     <div className="bg-white/5 rounded-lg p-3 flex-1">
                                         <span className="text-xs text-gray-500 uppercase block mb-1">Work Type</span>
