@@ -26,7 +26,7 @@ const NotificationSchema = new mongoose.Schema({
     onModel: {
         type: String,
         required: true,
-        enum: ['Task']
+        enum: ['Task', 'Attendance']
     }
 }, { timestamps: true });
 

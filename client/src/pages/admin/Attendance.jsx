@@ -223,6 +223,12 @@ const Attendance = () => {
                                             <div className="text-sm">
                                                 <div className="flex items-center gap-2 text-gray-300 mb-1"><Clock size={14} className="text-orange-400" /> {formatTime(req.checkOut.time)}</div>
                                                 {req.checkOut.remarks && <p className="text-xs text-gray-500 mt-2 italic">"{req.checkOut.remarks}"</p>}
+                                                {req.overtimeRequest && req.overtimeRequest.isRequested && (
+                                                    <div className="mt-2 text-xs bg-red-500/10 border border-red-500/20 p-2 rounded">
+                                                        <span className="text-red-400 font-bold block mb-1">Overtime Requested: {req.overtimeRequest.minutes} mins</span>
+                                                        <span className="text-gray-400 italic">"{req.overtimeRequest.reason}"</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                         {req.type === 'halfDay' && (

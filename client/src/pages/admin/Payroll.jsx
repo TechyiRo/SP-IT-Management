@@ -85,10 +85,12 @@ const Payroll = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-600">
-                        Payroll Management
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-600 flex items-center gap-3">
+                        <span className="animate-bounce">💸</span> Payroll Management
                     </h1>
-                    <p className="text-gray-400 mt-1">Calculate and manage monthly salaries.</p>
+                    <p className="text-gray-400 mt-1 flex items-center gap-2">
+                        Calculate and manage monthly salaries <span className="animate-pulse">✨</span>
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-3 bg-slate-900/50 p-2 rounded-xl border border-white/10">
@@ -106,8 +108,8 @@ const Payroll = () => {
 
             <div className="glass-card overflow-hidden">
                 <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between gap-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Users className="w-5 h-5 text-gray-400" /> Employee List
+                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                        <span className="text-2xl animate-pulse">👥</span> Employee Roster
                     </h2>
                     <div className="relative">
                         <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -139,9 +141,9 @@ const Payroll = () => {
                                         <td className="p-4 text-right">
                                             <button
                                                 onClick={() => handleViewBreakdown(user._id)}
-                                                className="glass-button text-xs py-1.5 px-3 hover:bg-cyan-500/20 hover:text-cyan-400 transition-all flex items-center gap-2 ml-auto"
+                                                className="glass-button text-xs py-1.5 px-3 hover:bg-emerald-500/20 hover:text-emerald-400 transition-all flex items-center gap-2 ml-auto group"
                                             >
-                                                <Eye className="w-3 h-3" /> Process Salary
+                                                <span className="group-hover:animate-spin">⚙️</span> Process Salary
                                             </button>
                                         </td>
                                     </tr>
@@ -158,9 +160,13 @@ const Payroll = () => {
                     <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">
                         <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                             <div>
-                                <h3 className="text-xl font-bold text-white">Salary Breakdown</h3>
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <span className="animate-bounce">🧾</span> Salary Breakdown
+                                </h3>
                                 {breakdownData && (
-                                    <p className="text-sm text-gray-400">{breakdownData.user.name} • {month}/{year}</p>
+                                    <p className="text-sm text-gray-400 mt-1 flex items-center gap-2">
+                                        👤 {breakdownData.user.name} <span className="text-emerald-400">•</span> 📅 {month}/{year}
+                                    </p>
                                 )}
                             </div>
                             <div className="flex items-center gap-4">
@@ -184,22 +190,32 @@ const Payroll = () => {
                             ) : breakdownData ? (
                                 <div className="space-y-6">
                                     {/* Summary Cards */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="glass-card p-4 bg-emerald-500/10 border-emerald-500/20">
-                                            <div className="text-xs text-emerald-400 uppercase font-bold">Total Pay</div>
-                                            <div className="text-2xl font-bold text-white">₹ {breakdownData.summary.totalPay.toLocaleString()}</div>
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                        <div className="glass-card p-4 bg-emerald-500/10 border-emerald-500/20 relative overflow-hidden group">
+                                            <div className="absolute right-[-10px] top-[-10px] text-5xl opacity-10 group-hover:scale-110 transition-transform">💰</div>
+                                            <div className="text-xs text-emerald-400 uppercase font-bold flex items-center gap-1">Net Salary <span className="animate-pulse">🤑</span></div>
+                                            <div className="text-2xl font-bold text-white mt-1">₹ {breakdownData.summary.netSalary.toLocaleString()}</div>
                                         </div>
-                                        <div className="glass-card p-4">
-                                            <div className="text-xs text-gray-400 uppercase font-bold">Total Hours</div>
-                                            <div className="text-xl font-bold text-white">{breakdownData.summary.totalHours} h</div>
+                                        <div className="glass-card p-4 bg-red-500/10 border-red-500/20 relative overflow-hidden group">
+                                            <div className="absolute right-[-10px] top-[-10px] text-5xl opacity-10 group-hover:scale-110 transition-transform">✂️</div>
+                                            <div className="text-xs text-red-400 uppercase font-bold flex items-center gap-1">Salary Cut <span>📉</span></div>
+                                            <div className="text-xl font-bold text-white mt-1">₹ {breakdownData.summary.totalCuts.toLocaleString()}</div>
                                         </div>
-                                        <div className="glass-card p-4">
-                                            <div className="text-xs text-gray-400 uppercase font-bold">Present Days</div>
-                                            <div className="text-xl font-bold text-white">{breakdownData.summary.presentDays} <span className="text-xs text-gray-500">/ {breakdownData.summary.totalDays}</span></div>
+                                        <div className="glass-card p-4 bg-purple-500/10 border-purple-500/20 relative overflow-hidden group">
+                                            <div className="absolute right-[-10px] top-[-10px] text-5xl opacity-10 group-hover:scale-110 transition-transform">🔥</div>
+                                            <div className="text-xs text-purple-400 uppercase font-bold flex items-center gap-1">Overtime <span>🚀</span></div>
+                                            <div className="text-xl font-bold text-white mt-1">+₹ {breakdownData.summary.totalOvertimePay.toLocaleString()}</div>
                                         </div>
-                                        <div className="glass-card p-4">
-                                            <div className="text-xs text-gray-400 uppercase font-bold">Hourly Rate</div>
-                                            <div className="text-xl font-bold text-white">₹ {breakdownData.user.hourlyRate}</div>
+                                        <div className="glass-card p-4 relative overflow-hidden group">
+                                            <div className="absolute right-[-10px] top-[-10px] text-5xl opacity-5 group-hover:scale-110 transition-transform">📆</div>
+                                            <div className="text-xs text-gray-400 uppercase font-bold flex items-center gap-1">Present <span>🏃‍♂️</span></div>
+                                            <div className="text-xl font-bold text-white mt-1">{breakdownData.summary.presentDays} <span className="text-xs text-gray-500">/ {breakdownData.summary.workingDays}</span></div>
+                                            <div className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">Holidays: {breakdownData.summary.holidays} <span>🏖️</span></div>
+                                        </div>
+                                        <div className="glass-card p-4 relative overflow-hidden group">
+                                            <div className="absolute right-[-10px] top-[-10px] text-5xl opacity-5 group-hover:scale-110 transition-transform">⏱️</div>
+                                            <div className="text-xs text-cyan-400 uppercase font-bold flex items-center gap-1">Daily Rate <span>⏳</span></div>
+                                            <div className="text-xl font-bold text-white mt-1">₹ {breakdownData.summary.dailyRate}</div>
                                         </div>
                                     </div>
 
@@ -211,6 +227,8 @@ const Payroll = () => {
                                                 <th className="p-3">Status</th>
                                                 <th className="p-3">Check In/Out</th>
                                                 <th className="p-3">Hours</th>
+                                                <th className="p-3 text-right">Cut Amount</th>
+                                                <th className="p-3 text-right">Overtime</th>
                                                 <th className="p-3 text-right">Daily Earn</th>
                                             </tr>
                                         </thead>
@@ -221,8 +239,10 @@ const Payroll = () => {
                                                         {new Date(day.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                                                     </td>
                                                     <td className="p-3">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${day.status === 'Present' ? 'bg-green-500/20 text-green-400' :
-                                                            day.status === 'Absent' ? 'bg-red-500/20 text-red-400' :
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+                                                            day.status === 'Present' || day.status === 'Checked-Out' ? 'bg-green-500/20 text-green-400' :
+                                                            day.status === 'Absent' || day.status === 'Forgot Check-Out' ? 'bg-red-500/20 text-red-400' :
+                                                                day.status === 'Holiday' ? 'bg-blue-500/20 text-blue-400' :
                                                                 'bg-yellow-500/20 text-yellow-400'
                                                             }`}>
                                                             {day.status}
@@ -234,6 +254,12 @@ const Payroll = () => {
                                                     </td>
                                                     <td className="p-3 font-mono text-white">
                                                         {day.hours > 0 ? day.hours + ' h' : '-'}
+                                                    </td>
+                                                    <td className="p-3 text-right font-mono text-red-400">
+                                                        {day.cutAmount > 0 ? `-₹${day.cutAmount}` : '-'}
+                                                    </td>
+                                                    <td className="p-3 text-right font-mono text-purple-400">
+                                                        {day.overtimePay > 0 ? `+₹${day.overtimePay}` : '-'}
                                                     </td>
                                                     <td className="p-3 text-right font-bold text-emerald-400">
                                                         ₹ {day.dailyPay}

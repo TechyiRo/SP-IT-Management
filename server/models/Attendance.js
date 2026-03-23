@@ -57,9 +57,22 @@ const AttendanceSchema = new mongoose.Schema({
         enum: [
             'Present', 'Absent', 'Half Day', 'On Leave',
             'Pending Check-In', 'Pending Check-Out', 'Pending Half-Day', 'Pending Leave',
-            'Checked-Out', 'Rejected', 'Holiday'
+            'Checked-Out', 'Rejected', 'Holiday', 'Forgot Check-Out'
         ],
         default: 'Absent'
+    },
+
+    // Handle forgotten checkouts
+    forgotCheckOut: { type: Boolean, default: false },
+    overtimeRequest: {
+        isRequested: { type: Boolean, default: false },
+        minutes: { type: Number, default: 0 },
+        reason: { type: String },
+        status: {
+            type: String,
+            enum: ['Pending', 'Approved', 'Rejected'],
+            default: 'Pending'
+        }
     },
 
     duration: { type: Number, default: 0 }, // In minutes

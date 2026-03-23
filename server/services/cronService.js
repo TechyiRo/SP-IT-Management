@@ -33,6 +33,21 @@ const initializeCronJobs = () => {
 
                     await newAttendance.save();
                     absentCount++;
+                } else if (attendance.checkIn && attendance.checkIn.status === 'Approved' && (!attendance.checkOut || attendance.checkOut.status !== 'Approved')) {
+                    // Employee checked in but forgot to checkout
+                    attendance.forgotCheckOut = true;
+                    attendance.status = 'Forgot Check-Out';
+                    await attendance.save();
+
+                    // Send Notification
+                    const Notification = require('../models/Notification');
+                    await Notification.create({
+                        recipient: employee._id,
+                        message: `You forgot to Check-out today (${today.toLocaleDateString()}). Please update your checkout time and request overtime if applicable.`,
+                        type: 'general',
+                        relatedId: attendance._id,
+                        onModel: 'Attendance'
+                    });
                 }
             }
 

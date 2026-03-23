@@ -212,11 +212,26 @@ router.put('/:id/action', auth, async (req, res) => {
             if (attendance.checkIn.time && attendance.checkOut.time) {
                 const diff = Math.abs(new Date(attendance.checkOut.time) - new Date(attendance.checkIn.time));
                 attendance.duration = Math.floor((diff / 1000) / 60);
+                
+                // Automatically set 'Half Day' if duration is > 4 hours and < 7 hours
+                if (attendance.duration > 240 && attendance.duration < 420) {
+                    attendance.status = 'Half Day';
+                }
             }
 
+            // Auto-approve overtime if requested during checkout approval
+            if (attendance.overtimeRequest && attendance.overtimeRequest.isRequested && attendance.overtimeRequest.status === 'Pending') {
+                attendance.overtimeRequest.status = 'Approved';
+                // Overtime minutes can be added to duration if needed, or tracked separately
+            }
         } else if (action === 'reject_checkout') {
             attendance.checkOut.status = 'Rejected';
             attendance.status = 'Present';
+
+            // Reject any pending overtime requests as well
+            if (attendance.overtimeRequest && attendance.overtimeRequest.isRequested && attendance.overtimeRequest.status === 'Pending') {
+                attendance.overtimeRequest.status = 'Rejected';
+            }
         } else if (action === 'approve_halfday') {
             attendance.halfDay.status = 'Approved';
             attendance.status = 'Half Day';
@@ -339,6 +354,48 @@ router.delete('/:id', auth, async (req, res) => {
 
         await attendance.deleteOne();
         res.json({ msg: 'Attendance record removed' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   POST api/attendance/forgot-checkout/:id
+// @desc    Submit forgotten checkout and overtime request
+// @access  Private (Employee)
+router.post('/forgot-checkout/:id', auth, async (req, res) => {
+    try {
+        let attendance = await Attendance.findOne({ _id: req.params.id, employee: req.user.id });
+        if (!attendance || !attendance.forgotCheckOut) {
+            return res.status(404).json({ msg: 'No forgotten checkout record found' });
+        }
+
+        const { checkOutTime, overtimeMinutes, reason } = req.body;
+
+        if (!checkOutTime) {
+            return res.status(400).json({ msg: 'Check-out time is required' });
+        }
+
+        attendance.checkOut = {
+            time: new Date(checkOutTime),
+            status: 'Pending',
+            remarks: reason
+        };
+
+        if (overtimeMinutes && overtimeMinutes > 0) {
+            attendance.overtimeRequest = {
+                isRequested: true,
+                minutes: overtimeMinutes,
+                reason: reason,
+                status: 'Pending'
+            };
+        }
+
+        attendance.status = 'Pending Check-Out';
+        attendance.forgotCheckOut = false; // Resolved the forgot state, back to pending
+        await attendance.save();
+
+        res.json(attendance);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

@@ -9,7 +9,6 @@ const Attendance = require('../models/Attendance');
 // @access  Private (Admin/Self)
 router.get('/breakdown/:userId', auth, async (req, res) => {
     try {
-        // Auth check: Admin or Self
         if (req.user.role !== 'admin' && req.user.id !== req.params.userId) {
             return res.status(403).json({ msg: 'Access denied' });
         }
@@ -24,81 +23,131 @@ router.get('/breakdown/:userId', auth, async (req, res) => {
         if (!user) return res.status(404).json({ msg: 'User not found' });
 
         const baseSalary = user.baseSalary || 0;
+        const totalDaysInMonth = new Date(year, month, 0).getDate();
 
-        // Calculation Constants
-        const STANDARD_DAYS = 30;
-        const STANDARD_HOURS = 8;
-        const hourlyRate = (baseSalary / STANDARD_DAYS) / STANDARD_HOURS;
+        // Count Sundays
+        let sundayCount = 0;
+        for (let i = 1; i <= totalDaysInMonth; i++) {
+            const date = new Date(year, month - 1, i);
+            if (date.getDay() === 0) {
+                sundayCount++;
+            }
+        }
 
-        // Fetch Attendance for that month range
         const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59); // Last day of month
+        const endDate = new Date(year, month, 0, 23, 59, 59);
 
         const records = await Attendance.find({
             employee: req.params.userId,
             date: { $gte: startDate, $lte: endDate }
         }).sort({ date: 1 });
 
-        let totalPay = 0;
+        // Count manual holidays (not Sundays)
+        const manualHolidays = records.filter(r => r.status === 'Holiday' && new Date(r.date).getDay() !== 0).length;
+        const totalHolidays = sundayCount + manualHolidays;
+        const workingDaysInMonth = totalDaysInMonth - totalHolidays;
+        
+        const dailyRate = workingDaysInMonth > 0 ? (baseSalary / workingDaysInMonth) : 0;
+        const perMinuteRate = dailyRate / (8 * 60);
+
+        let totalPayCuts = 0;
+        let totalOvertimePay = 0;
         let totalHours = 0;
         let presentDays = 0;
+        const breakdown = [];
 
-        const breakdown = records.map(record => {
-            let hours = 0;
-            let dailyPay = 0;
+        for (let i = 1; i <= totalDaysInMonth; i++) {
+            const currentDate = new Date(year, month - 1, i);
+            const isSunday = currentDate.getDay() === 0;
+            const record = records.find(r => new Date(r.date).getDate() === i);
+            let isHoliday = isSunday || (record && record.status === 'Holiday');
 
-            // Determine hours based on duration or status
-            // Note: duration is in minutes in Attendance model
-            if (record.duration > 0) {
-                hours = Math.round((record.duration / 60) * 100) / 100; // Round to 2 decimals
-            } else if (record.status === 'Present') {
-                // Fallback if checked-in but not out? Or manual Present?
-                // If manual 'Present' without duration, assume 8 hrs? 
-                // Let's assume duration is the source of truth if it exists, else 0 or manual policy.
-                // For now, if duration is 0 but status is 'Present', let's NOT pay to force Checkout.
-                // Or user 'Manual Update' handles duration.
-                hours = 0;
-            } else if (record.status === 'Half Day') {
-                hours = 4;
-            } else if (record.status === 'Holiday') {
-                hours = 8; // Paid Holiday
+            let dailyEarned = 0;
+            let cutAmount = 0;
+            let overtimePay = 0;
+            let hoursWorked = 0;
+            let status = record ? record.status : (isHoliday ? 'Holiday' : 'Absent');
+
+            if (record && record.duration > 0) {
+                hoursWorked = record.duration / 60;
+                
+                if (isHoliday) {
+                    // Working on a holiday is pure overtime
+                    overtimePay = record.duration * perMinuteRate;
+                    dailyEarned = overtimePay;
+                    totalOvertimePay += overtimePay;
+                    totalHours += hoursWorked;
+                    presentDays++;
+                } else {
+                    if (record.duration >= 480) { // 8 hours or more
+                        dailyEarned = dailyRate;
+                        totalHours += hoursWorked;
+                        presentDays++;
+                        
+                        // Overtime if > 8 hrs
+                        if (record.duration > 480) {
+                            const extraMins = record.duration - 480;
+                            const extraPay = extraMins * perMinuteRate;
+                            overtimePay = extraPay;
+                            dailyEarned += extraPay; // Total they earned today
+                            totalOvertimePay += extraPay;
+                        }
+                    } else { // Less than 8 hours
+                        const workedPay = record.duration * perMinuteRate;
+                        cutAmount = dailyRate - workedPay;
+                        dailyEarned = workedPay;
+                        totalPayCuts += cutAmount;
+                        totalHours += hoursWorked;
+                        presentDays++;
+                    }
+                }
+            } else {
+                if (!isHoliday) {
+                    if (status === 'Half Day') {
+                        hoursWorked = 4;
+                        const workedPay = (4 * 60) * perMinuteRate;
+                        cutAmount = dailyRate - workedPay;
+                        dailyEarned = workedPay;
+                        totalPayCuts += cutAmount;
+                        totalHours += hoursWorked;
+                        presentDays += 0.5;
+                    } else if (status === 'Absent' || status === 'On Leave' || status.includes('Pending') || status === 'Forgot Check-Out') {
+                        cutAmount = dailyRate;
+                        totalPayCuts += cutAmount;
+                    }
+                }
             }
 
-            // Cap at 8 hours? Or allow overtime? 
-            // User requested "6h 30m vs 8h", so usually cap at 8 for standard pay, or pay specific.
-            // Let's pay purely based on duration for now (Linear).
-            dailyPay = Math.round(hours * hourlyRate);
+            breakdown.push({
+                date: currentDate,
+                status: status,
+                checkIn: record?.checkIn?.time,
+                checkOut: record?.checkOut?.time,
+                hours: Math.round(hoursWorked * 100) / 100,
+                dailyPay: Math.round(dailyEarned),
+                cutAmount: Math.round(cutAmount),
+                overtimePay: Math.round(overtimePay)
+            });
+        }
 
-            if (hours > 0) {
-                totalHours += hours;
-                totalPay += dailyPay;
-                presentDays++;
-            }
+        const netSalary = Math.round(baseSalary - totalPayCuts + totalOvertimePay);
 
-            return {
-                date: record.date,
-                status: record.status,
-                checkIn: record.checkIn?.time,
-                checkOut: record.checkOut?.time,
-                hours: hours,
-                dailyPay: dailyPay
-            };
-        });
-
-        // Include "Total" summary
         res.json({
             user: {
                 id: user._id,
                 name: user.fullName,
                 baseSalary: baseSalary,
-                hourlyRate: hourlyRate.toFixed(2)
             },
             summary: {
-                totalDays: STANDARD_DAYS,
-                presentDays,
+                totalDays: totalDaysInMonth,
+                workingDays: workingDaysInMonth,
+                holidays: totalHolidays,
+                presentDays: presentDays,
                 totalHours: totalHours.toFixed(2),
-                totalPay,
-                netSalary: totalPay // Deductions can be added later
+                dailyRate: Math.round(dailyRate),
+                totalCuts: Math.round(totalPayCuts),
+                totalOvertimePay: Math.round(totalOvertimePay),
+                netSalary: netSalary
             },
             breakdown
         });
@@ -119,17 +168,21 @@ const Payroll = require('../models/Payroll');
 router.post('/generate', auth, async (req, res) => {
     if (req.user.role !== 'admin') return res.status(403).json({ msg: 'Access denied' });
 
-    const { userId, month, year, bonus, deductions, note } = req.body; // bonus/deductions optional manual overrides
+    const { userId, month, year, bonus, deductions, note } = req.body;
 
     try {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ msg: 'User not found' });
 
-        // 1. Perform Calculation (Same logic as breakdown)
+        // Identical core calculation logic to the breakdown
         const baseSalary = user.baseSalary || 0;
-        const STANDARD_DAYS = 30;
-        const STANDARD_HOURS = 8;
-        const hourlyRate = (baseSalary / STANDARD_DAYS) / STANDARD_HOURS;
+        const totalDaysInMonth = new Date(year, month, 0).getDate();
+
+        let sundayCount = 0;
+        for (let i = 1; i <= totalDaysInMonth; i++) {
+            const date = new Date(year, month - 1, i);
+            if (date.getDay() === 0) sundayCount++;
+        }
 
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
@@ -139,52 +192,79 @@ router.post('/generate', auth, async (req, res) => {
             date: { $gte: startDate, $lte: endDate }
         });
 
+        const manualHolidays = records.filter(r => r.status === 'Holiday' && new Date(r.date).getDay() !== 0).length;
+        const totalHolidays = sundayCount + manualHolidays;
+        const workingDaysInMonth = totalDaysInMonth - totalHolidays;
+        
+        const dailyRate = workingDaysInMonth > 0 ? (baseSalary / workingDaysInMonth) : 0;
+        const perMinuteRate = dailyRate / (8 * 60);
+
+        let totalPayCuts = 0;
+        let totalOvertimePay = 0;
         let totalHours = 0;
         let presentDays = 0;
 
-        records.forEach(record => {
-            let hours = 0;
-            if (record.duration > 0) hours = record.duration / 60;
-            else if (record.status === 'Present') hours = 0; // Or 8 if policy changes
-            else if (record.status === 'Half Day') hours = 4;
-            else if (record.status === 'Holiday') hours = 8;
+        for (let i = 1; i <= totalDaysInMonth; i++) {
+            const currentDate = new Date(year, month - 1, i);
+            const isSunday = currentDate.getDay() === 0;
+            const record = records.find(r => new Date(r.date).getDate() === i);
+            let isHoliday = isSunday || (record && record.status === 'Holiday');
 
-            if (hours > 0) {
-                totalHours += hours;
+            let status = record ? record.status : (isHoliday ? 'Holiday' : 'Absent');
+
+            if (record && record.duration > 0) {
+                totalHours += record.duration / 60;
                 presentDays++;
+                
+                if (isHoliday) {
+                    totalOvertimePay += record.duration * perMinuteRate;
+                } else {
+                    if (record.duration > 480) {
+                        totalOvertimePay += (record.duration - 480) * perMinuteRate;
+                    } else if (record.duration < 480) {
+                        totalPayCuts += dailyRate - (record.duration * perMinuteRate);
+                    }
+                }
+            } else {
+                if (!isHoliday) {
+                    if (status === 'Half Day') {
+                        totalPayCuts += dailyRate - ((4 * 60) * perMinuteRate);
+                        totalHours += 4;
+                        presentDays += 0.5;
+                    } else if (status === 'Absent' || status === 'On Leave' || status.includes('Pending') || status === 'Forgot Check-Out') {
+                        totalPayCuts += dailyRate;
+                    }
+                }
             }
-        });
+        }
 
-        // 2. Financials
-        const earnedAmount = Math.round(totalHours * hourlyRate);
+        const earnedAmount = Math.round(baseSalary - totalPayCuts + totalOvertimePay);
         const finalBonus = parseFloat(bonus) || 0;
         const finalDeductions = parseFloat(deductions) || 0;
 
-        const netSalary = earnedAmount + finalBonus - finalDeductions;
+        const netSalary = Math.round(earnedAmount + finalBonus - finalDeductions);
 
-        // 3. Upsert Payroll Record
         let payroll = await Payroll.findOne({ employee: userId, month, year });
 
         if (payroll) {
-            // Update existing
             payroll.baseSalary = baseSalary;
-            payroll.hourlyRate = hourlyRate;
+            payroll.hourlyRate = Math.round(dailyRate / 8); // approximate for reference
             payroll.totalHours = totalHours;
             payroll.presentDays = presentDays;
+            payroll.totalDays = totalDaysInMonth;
             payroll.calculatedWithHours = earnedAmount;
             payroll.bonus = finalBonus;
             payroll.deductions = finalDeductions;
             payroll.netSalary = netSalary;
             payroll.generatedAt = Date.now();
         } else {
-            // Create new
             payroll = new Payroll({
                 employee: userId,
                 month,
                 year,
                 baseSalary,
-                hourlyRate,
-                totalDays: STANDARD_DAYS,
+                hourlyRate: Math.round(dailyRate / 8),
+                totalDays: totalDaysInMonth,
                 presentDays,
                 totalHours,
                 calculatedWithHours: earnedAmount,

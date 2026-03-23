@@ -21,6 +21,12 @@ const EmployeeAttendance = () => {
     const [leaveReason, setLeaveReason] = useState('');
     const [leaveFile, setLeaveFile] = useState(null);
 
+    // Forgotten Check-out
+    const [forgotRecord, setForgotRecord] = useState(null);
+    const [forgotCheckOutTime, setForgotCheckOutTime] = useState('');
+    const [overtimeMinutes, setOvertimeMinutes] = useState(0);
+    const [forgotReason, setForgotReason] = useState('');
+
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         fetchAttendanceData();
@@ -35,6 +41,15 @@ const EmployeeAttendance = () => {
             const today = new Date().toDateString();
             const record = res.data.find(a => new Date(a.date).toDateString() === today);
             setTodayRecord(record || null);
+
+            // Check if any forgotten checkout exists
+            const forgot = res.data.find(a => a.forgotCheckOut === true);
+            if (forgot) {
+                setForgotRecord(forgot);
+            } else {
+                setForgotRecord(null);
+            }
+
             setLoading(false);
         } catch (err) {
             console.error(err);
@@ -138,6 +153,26 @@ const EmployeeAttendance = () => {
         }
     };
 
+    const handleForgotSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const baseDate = new Date(forgotRecord.date).toDateString();
+            const fullDateStr = `${baseDate} ${forgotCheckOutTime}`;
+            
+            await api.post(`/api/attendance/forgot-checkout/${forgotRecord._id}`, {
+                checkOutTime: fullDateStr,
+                overtimeMinutes: Number(overtimeMinutes),
+                reason: forgotReason
+            });
+            alert('Checkout Time Submitted Successfully! ✅');
+            setForgotRecord(null);
+            fetchAttendanceData();
+        } catch (err) {
+            console.error(err);
+            alert('Failed to submit: ' + (err.response?.data?.msg || err.message));
+        }
+    };
+
     const getStatusDisplay = () => {
         if (!todayRecord) {
             return {
@@ -188,6 +223,10 @@ const EmployeeAttendance = () => {
 
         if (checkIn?.status === 'Rejected') {
             return { text: "Check-In Rejected", emoji: "❌", action: "contact_admin", message: "Contact Admin" };
+        }
+        
+        if (status === 'Forgot Check-Out') {
+             return { text: "Missing Checkout", emoji: "⚠️", action: "forgot", message: "Please update your missing checkout" };
         }
 
         return { text: status, emoji: "❓", action: "none", message: "" };
@@ -296,6 +335,61 @@ const EmployeeAttendance = () => {
                         </div>
                         <button type="submit" className="glass-button w-full bg-purple-600 hover:bg-purple-500 text-white">Submit Request</button>
                     </form>
+                </div>
+            )}
+
+            {/* Forgot Check-Out Alert / Form */}
+            {forgotRecord && (
+                <div className="glass-card p-6 border-l-4 border-red-500 bg-red-500/10 mb-6 animate-pulse-slow">
+                    <div className="flex items-start gap-4">
+                        <AlertCircle className="text-red-400 mt-1 shrink-0" size={24} />
+                        <div className="flex-1 w-full">
+                            <h3 className="text-lg font-bold text-red-400 mb-1">Missing Check-Out Detected</h3>
+                            <p className="text-sm text-gray-300 mb-4">
+                                You forgot to complete your Check-Out on <b>{new Date(forgotRecord.date).toLocaleDateString()}</b>. 
+                                Please update your check-out time. You can also request an overtime allowance if applicable.
+                            </p>
+                            <form onSubmit={handleForgotSubmit} className="space-y-4 bg-black/40 p-4 rounded-lg border border-red-500/20">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-1">Actual Check-Out Time *</label>
+                                        <input 
+                                            type="time" 
+                                            required 
+                                            className="glass-input w-full border-red-500/30 focus:border-red-500" 
+                                            value={forgotCheckOutTime} 
+                                            onChange={e => setForgotCheckOutTime(e.target.value)} 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-1">Overtime (Minutes)</label>
+                                        <input 
+                                            type="number" 
+                                            min="0"
+                                            className="glass-input w-full" 
+                                            value={overtimeMinutes} 
+                                            onChange={e => setOvertimeMinutes(e.target.value)} 
+                                            placeholder="Optional Overtime"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Reason / Remarks *</label>
+                                    <textarea 
+                                        className="glass-input w-full" 
+                                        required 
+                                        value={forgotReason} 
+                                        onChange={e => setForgotReason(e.target.value)} 
+                                        placeholder="Explain why the checkout was missed and overtime request (if any)..." 
+                                        rows="2"
+                                    ></textarea>
+                                </div>
+                                <button type="submit" className="glass-button w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 shadow-[0_0_15px_rgba(220,38,38,0.4)]">
+                                    Submit Missing Check-Out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             )}
 
