@@ -413,16 +413,22 @@ const EmployeeAttendance = () => {
                                 <tr key={record._id} className="hover:bg-white/5 text-sm">
                                     <td className="p-3 text-gray-300">{new Date(record.date).toLocaleDateString()}</td>
                                     <td className="p-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs border ${record.status === 'Present' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                                        <span className={`px-2 py-1 rounded-full text-xs border ${
+                                            record.status === 'Present' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                                            record.status === 'Checked-Out' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
+                                            record.status === 'Half Day' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
                                             record.status === 'On Leave' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
-                                                record.status.includes('Pending') ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
-                                                    'bg-red-500/20 text-red-300 border-red-500/30'
-                                            }`}>
+                                            record.status === 'Over Work' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
+                                            record.status.includes('Pending') ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
+                                            'bg-red-500/20 text-red-300 border-red-500/30'
+                                        }`}>
                                             {record.status === 'Present' ? '🟢 Present' :
                                                 record.status === 'Absent' ? '🔴 Absent' :
-                                                    record.status === 'Half Day' ? '🌓 Half Day' :
-                                                        record.status === 'On Leave' ? '🏖️ On Leave' :
-                                                            record.status.includes('Pending') ? '🕒 Pending' : record.status}
+                                                record.status === 'Half Day' ? '🌓 Half Day' :
+                                                record.status === 'On Leave' ? '🏖️ On Leave' :
+                                                record.status === 'Over Work' ? '🔥 Over Work' :
+                                                record.status === 'Checked-Out' ? '✅ Checked-Out' :
+                                                record.status.includes('Pending') ? '🕒 Pending' : record.status}
                                         </span>
                                     </td>
                                     <td className="p-3 text-gray-400">

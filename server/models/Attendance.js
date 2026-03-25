@@ -57,7 +57,7 @@ const AttendanceSchema = new mongoose.Schema({
         enum: [
             'Present', 'Absent', 'Half Day', 'On Leave',
             'Pending Check-In', 'Pending Check-Out', 'Pending Half-Day', 'Pending Leave',
-            'Checked-Out', 'Rejected', 'Holiday', 'Forgot Check-Out'
+            'Checked-Out', 'Rejected', 'Holiday', 'Forgot Check-Out', 'Over Work'
         ],
         default: 'Absent'
     },

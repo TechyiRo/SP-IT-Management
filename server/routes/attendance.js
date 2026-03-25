@@ -207,22 +207,30 @@ router.put('/:id/action', auth, async (req, res) => {
             attendance.status = 'Rejected';
         } else if (action === 'approve_checkout') {
             attendance.checkOut.status = 'Approved';
-            attendance.status = 'Checked-Out';
 
             if (attendance.checkIn.time && attendance.checkOut.time) {
                 const diff = Math.abs(new Date(attendance.checkOut.time) - new Date(attendance.checkIn.time));
                 attendance.duration = Math.floor((diff / 1000) / 60);
-                
-                // Automatically set 'Half Day' if duration is > 4 hours and < 7 hours
-                if (attendance.duration > 240 && attendance.duration < 420) {
+
+                // ≤ 4 hours (240 min) → Half Day
+                if (attendance.duration <= 240) {
                     attendance.status = 'Half Day';
                 }
+                // > 8 hours (480 min) → Over Work
+                else if (attendance.duration > 480) {
+                    attendance.status = 'Over Work';
+                }
+                // 4–8 hours → Normal day
+                else {
+                    attendance.status = 'Checked-Out';
+                }
+            } else {
+                attendance.status = 'Checked-Out';
             }
 
             // Auto-approve overtime if requested during checkout approval
             if (attendance.overtimeRequest && attendance.overtimeRequest.isRequested && attendance.overtimeRequest.status === 'Pending') {
                 attendance.overtimeRequest.status = 'Approved';
-                // Overtime minutes can be added to duration if needed, or tracked separately
             }
         } else if (action === 'reject_checkout') {
             attendance.checkOut.status = 'Rejected';
@@ -399,6 +407,76 @@ router.post('/forgot-checkout/:id', auth, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// @route   POST api/attendance/mark-absents
+// @desc    Admin: Manually mark absents for a specific date
+//          Body: { date: "YYYY-MM-DD" }  (defaults to today)
+// @access  Private (Admin)
+// ─────────────────────────────────────────────────────────────
+router.post('/mark-absents', auth, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ msg: 'Access denied' });
+
+    try {
+        const { markAbsentsForDate } = require('../services/cronService');
+
+        const targetDate = req.body.date ? new Date(req.body.date) : new Date();
+        targetDate.setHours(0, 0, 0, 0);
+
+        const result = await markAbsentsForDate(targetDate);
+        res.json({
+            msg: `Absent check complete for ${targetDate.toDateString()}`,
+            absent: result.absent,
+            forgotCheckOut: result.forgotCheckOut,
+            totalEmployees: result.totalEmployees
+        });
+    } catch (err) {
+        console.error('[mark-absents]', err.message);
+        res.status(500).json({ msg: 'Server Error', error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// @route   POST api/attendance/backfill-absents
+// @desc    Admin: Backfill absent records for past N days
+//          Body: { days: 30 }  (defaults to 30)
+// @access  Private (Admin)
+// ─────────────────────────────────────────────────────────────
+router.post('/backfill-absents', auth, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ msg: 'Access denied' });
+
+    try {
+        const { markAbsentsForDate } = require('../services/cronService');
+        const days = parseInt(req.body.days) || 30;
+
+        let totalAbsent = 0;
+        let totalForgot = 0;
+        const log = [];
+
+        for (let i = 1; i <= days; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            d.setHours(0, 0, 0, 0);
+
+            const result = await markAbsentsForDate(d);
+            totalAbsent += result.absent;
+            totalForgot += result.forgotCheckOut;
+            if (result.absent > 0 || result.forgotCheckOut > 0) {
+                log.push({ date: d.toDateString(), absent: result.absent, forgotCheckOut: result.forgotCheckOut });
+            }
+        }
+
+        res.json({
+            msg: `Backfill complete for past ${days} days`,
+            totalAbsent,
+            totalForgotCheckOut: totalForgot,
+            details: log
+        });
+    } catch (err) {
+        console.error('[backfill-absents]', err.message);
+        res.status(500).json({ msg: 'Server Error', error: err.message });
     }
 });
 

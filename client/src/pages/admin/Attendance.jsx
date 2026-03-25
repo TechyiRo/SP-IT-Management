@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api, { BASE_URL } from '../../api/axios';
-import { Calendar, Search, MapPin, Clock, UserCheck, FileText, CheckCircle, XCircle, AlertCircle, Edit, Briefcase, LogOut, Sun, Umbrella } from 'lucide-react';
+import { Calendar, Search, MapPin, Clock, UserCheck, FileText, CheckCircle, XCircle, AlertCircle, Edit, Briefcase, LogOut, Sun, Umbrella, UserX, RefreshCw } from 'lucide-react';
 
 const Attendance = () => {
     const [attendance, setAttendance] = useState([]);
@@ -9,7 +9,6 @@ const Attendance = () => {
     const [filterDate, setFilterDate] = useState('');
     const [pendingRequests, setPendingRequests] = useState([]);
 
-    // Edit State
     const [editingRecord, setEditingRecord] = useState(null);
     const [editForm, setEditForm] = useState({
         status: '',
@@ -17,6 +16,10 @@ const Attendance = () => {
         checkOutTime: '',
         remarks: ''
     });
+
+    // Absent marking state
+    const [absentLoading, setAbsentLoading] = useState(false);
+    const [absentResult, setAbsentResult] = useState(null);
 
     useEffect(() => {
         fetchAttendance();
@@ -64,6 +67,38 @@ const Attendance = () => {
             fetchAttendance();
         } catch (err) {
             alert('Action Failed');
+        }
+    };
+
+    // Mark absent for today
+    const handleMarkAbsentToday = async () => {
+        if (!window.confirm('Aajcha absent check chalvaycha aahe? (Today\'s absent marking)')) return;
+        setAbsentLoading(true);
+        setAbsentResult(null);
+        try {
+            const res = await api.post('/api/attendance/mark-absents');
+            setAbsentResult({ type: 'today', ...res.data });
+            fetchAttendance();
+        } catch (err) {
+            alert('Failed: ' + (err.response?.data?.msg || err.message));
+        } finally {
+            setAbsentLoading(false);
+        }
+    };
+
+    // Backfill absents for past 30 days
+    const handleBackfill = async () => {
+        if (!window.confirm('Magil 30 divsancha absent backfill karaycha ahe? (Backfill for past 30 days)')) return;
+        setAbsentLoading(true);
+        setAbsentResult(null);
+        try {
+            const res = await api.post('/api/attendance/backfill-absents', { days: 30 });
+            setAbsentResult({ type: 'backfill', ...res.data });
+            fetchAttendance();
+        } catch (err) {
+            alert('Failed: ' + (err.response?.data?.msg || err.message));
+        } finally {
+            setAbsentLoading(false);
         }
     };
 
@@ -144,7 +179,8 @@ const Attendance = () => {
             'Half Day': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
             'On Leave': 'bg-orange-500/10 text-orange-400 border-orange-500/20',
             'Checked-Out': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-            'Rejected': 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+            'Rejected': 'bg-gray-500/10 text-gray-400 border-gray-600',
+            'Over Work': 'bg-rose-500/10 text-rose-400 border-rose-500/20'
         };
         const defaultStyle = 'bg-gray-700/50 text-gray-300 border-gray-600';
 
@@ -153,6 +189,9 @@ const Attendance = () => {
         else if (status === 'Present') label = '🟢 Present';
         else if (status === 'Absent') label = '🔴 Absent';
         else if (status === 'On Leave') label = '🏖️ On Leave';
+        else if (status === 'Half Day') label = '🌓 Half Day';
+        else if (status === 'Over Work') label = '🔥 Over Work';
+        else if (status === 'Checked-Out') label = '✅ Checked-Out';
 
         return (
             <span className={`px-2 py-1 rounded-md text-xs border ${styles[status] || defaultStyle}`}>
@@ -442,6 +481,7 @@ const Attendance = () => {
                                     <option value="Half Day">Half Day</option>
                                     <option value="On Leave">On Leave</option>
                                     <option value="Checked-Out">Checked-Out</option>
+                                    <option value="Over Work">Over Work</option>
                                 </select>
                             </div>
 
