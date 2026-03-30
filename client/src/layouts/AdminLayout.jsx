@@ -112,8 +112,18 @@ const AdminLayout = () => {
 
                     <div className="glass-card bg-black/20 p-4 rounded-xl">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
-                                {user?.username?.substring(0, 2).toUpperCase()}
+                            <div className="relative w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white overflow-hidden shadow-md border-2 border-white/10 shrink-0">
+                                {user?.profilePicture ? (
+                                    <img 
+                                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture.startsWith('/') ? '' : '/'}${user.profilePicture}`} 
+                                        alt={user?.username} 
+                                        className="w-full h-full object-cover absolute inset-0 z-10"
+                                        onError={(e) => { e.target.style.display='none'; }}
+                                    />
+                                ) : null}
+                                <span className="relative z-0">
+                                    {user?.username?.substring(0, 2).toUpperCase()}
+                                </span>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className={`text-sm font-medium truncate ${themeParams.text}`}>{user?.fullName}</p>

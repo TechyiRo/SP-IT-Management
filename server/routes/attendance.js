@@ -69,9 +69,12 @@ router.post('/check-out', auth, async (req, res) => {
             date: today
         });
 
-        if (!attendance || attendance.checkIn.status !== 'Approved') {
+        const now = new Date();
+        const isAfter530 = now.getHours() > 17 || (now.getHours() === 17 && now.getMinutes() >= 30);
+
+        if (!attendance || (attendance.checkIn.status !== 'Approved' && !(attendance.checkIn.status === 'Pending' && isAfter530))) {
             return res.status(400).json({
-                msg: 'You must be checked in first',
+                msg: 'You must be checked in first (or wait until 5:30 PM)',
                 debug: {
                     serverDate: today,
                     found: !!attendance,

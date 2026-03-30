@@ -181,8 +181,18 @@ const EmployeeLayout = () => {
 
                     <div className={`p-4 rounded-xl cursor-pointer transition-colors ${currentTheme === 'soft' ? 'hover:bg-slate-100 border border-transparent hover:border-slate-200' : 'hover:bg-white/5 border border-transparent hover:border-white/10'}`} onClick={() => setIsProfileOpen(true)}>
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
-                                {user?.username?.substring(0, 2).toUpperCase()}
+                            <div className="relative w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white overflow-hidden shadow-md border-2 border-white/10 shrink-0">
+                                {user?.profilePicture ? (
+                                    <img 
+                                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture.startsWith('/') ? '' : '/'}${user.profilePicture}`} 
+                                        alt={user?.username} 
+                                        className="w-full h-full object-cover absolute inset-0 z-10"
+                                        onError={(e) => { e.target.style.display='none'; }}
+                                    />
+                                ) : null}
+                                <span className="relative z-0">
+                                    {user?.username?.substring(0, 2).toUpperCase()}
+                                </span>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className={`text-sm font-medium truncate ${themeParams.text}`}>{user?.fullName}</p>
@@ -234,8 +244,18 @@ const EmployeeLayout = () => {
             {/* Mobile Top Bar */}
             <div className="md:hidden fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent pointer-events-none sticky-bar-wrapper">
                 <div className="flex items-center gap-2 pointer-events-auto">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shadow-lg text-white">
-                        {user?.username?.substring(0, 2).toUpperCase()}
+                    <div className="relative w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shadow-lg text-white overflow-hidden border-2 border-white/20 shrink-0">
+                        {user?.profilePicture ? (
+                            <img 
+                                src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture.startsWith('/') ? '' : '/'}${user.profilePicture}`} 
+                                alt={user?.username} 
+                                className="w-full h-full object-cover absolute inset-0 z-10"
+                                onError={(e) => { e.target.style.display='none'; }}
+                            />
+                        ) : null}
+                        <span className="relative z-0">
+                            {user?.username?.substring(0, 2).toUpperCase()}
+                        </span>
                     </div>
                     <div className="flex flex-col">
                         <span className={`font-bold text-lg drop-shadow-md ${themeParams.text}`}>Hello, {user?.fullName?.split(' ')[0]}</span>

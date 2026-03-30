@@ -53,7 +53,12 @@ router.post('/login', async (req, res) => {
             { expiresIn: 360000 },
             (err, token) => {
                 if (err) throw err;
-                res.json({ token, user: { id: user.id, username: user.username, role: user.role, fullName: user.fullName, profilePicture: user.profilePicture } });
+                
+                // Return same object as /api/auth does
+                const userResponse = user.toObject();
+                delete userResponse.password;
+                
+                res.json({ token, user: userResponse });
             }
         );
     } catch (err) {
