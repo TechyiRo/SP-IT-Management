@@ -141,6 +141,23 @@ const AdminResources = () => {
         } catch (err) { alert('Error saving tracking payload'); }
     };
 
+    const handleAddVendorToForm = () => {
+        if (vendorInput.trim()) {
+            setInventoryForm({
+                ...inventoryForm,
+                vendors: [...inventoryForm.vendors, vendorInput.trim()]
+            });
+            setVendorInput('');
+        }
+    };
+
+    const handleRemoveVendorFromForm = (index) => {
+        setInventoryForm({
+            ...inventoryForm,
+            vendors: inventoryForm.vendors.filter((_, i) => i !== index)
+        });
+    };
+
     const TabButton = ({ id, label, icon: Icon }) => (
         <button
             onClick={() => setActiveTab(id)}
