@@ -21,8 +21,8 @@ const PayrollSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['Generated', 'Paid'],
-        default: 'Generated'
+        enum: ['Draft', 'Finalized', 'Paid'],
+        default: 'Draft'
     },
 
     generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

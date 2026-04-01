@@ -1,25 +1,27 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Clock, MapPin, CheckCircle, XCircle, AlertCircle, FileText, Upload, Calendar } from 'lucide-react';
+import { 
+    Clock, MapPin, CheckCircle, XCircle, AlertCircle, FileText, 
+    Upload, Calendar, ChevronRight, TrendingUp, Briefcase, 
+    Umbrella, CalendarDays, MousePointer2, Smartphone, ShieldCheck
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const EmployeeAttendance = () => {
     const { user } = useAuth();
+    const [activeTab, setActiveTab] = useState('checkin');
     const [loading, setLoading] = useState(true);
     const [todayRecord, setTodayRecord] = useState(null);
     const [history, setHistory] = useState([]);
+    const [holidays, setHolidays] = useState([]);
     const [currentTime, setCurrentTime] = useState(new Date());
 
-    // Half Day Form
+    // Request Forms
     const [showHalfDayForm, setShowHalfDayForm] = useState(false);
-    const [halfDayReason, setHalfDayReason] = useState('');
-    const [halfDayType, setHalfDayType] = useState('First Half');
-    const [file, setFile] = useState(null);
-
-    // Leave Form
+    const [halfDayForm, setHalfDayForm] = useState({ reason: '', type: 'First Half', file: null });
+    
     const [showLeaveForm, setShowLeaveForm] = useState(false);
-    const [leaveReason, setLeaveReason] = useState('');
-    const [leaveFile, setLeaveFile] = useState(null);
+    const [leaveForm, setLeaveForm] = useState({ reason: '', file: null });
 
     // Forgotten Check-out
     const [forgotRecord, setForgotRecord] = useState(null);
@@ -29,26 +31,28 @@ const EmployeeAttendance = () => {
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        fetchAttendanceData();
+        fetchData();
         return () => clearInterval(timer);
     }, []);
 
-    const fetchAttendanceData = async () => {
+    const fetchData = async () => {
+        setLoading(true);
         try {
-            const res = await api.get('/api/attendance/me');
-            setHistory(res.data);
+            const [attendanceRes, holidaysRes] = await Promise.all([
+                api.get('/api/attendance/me'),
+                api.get('/api/holidays')
+            ]);
+            
+            setHistory(attendanceRes.data);
+            setHolidays(holidaysRes.data);
 
             const today = new Date().toDateString();
-            const record = res.data.find(a => new Date(a.date).toDateString() === today);
+            const record = attendanceRes.data.find(a => new Date(a.date).toDateString() === today);
             setTodayRecord(record || null);
 
-            // Check if any forgotten checkout exists
-            const forgot = res.data.find(a => a.forgotCheckOut === true);
-            if (forgot) {
-                setForgotRecord(forgot);
-            } else {
-                setForgotRecord(null);
-            }
+            // Check for forgotten checkout
+            const forgot = attendanceRes.data.find(a => a.forgotCheckOut === true);
+            setForgotRecord(forgot || null);
 
             setLoading(false);
         } catch (err) {
@@ -59,43 +63,25 @@ const EmployeeAttendance = () => {
 
     const handleCheckInRequest = async () => {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser');
-            return;
+            alert('Geolocation missing, falling back to manual...');
         }
 
-        const getPosition = () => {
-            return new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject);
-            });
-        };
+        const getPos = () => new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej));
 
         try {
             setLoading(true);
-            const position = await getPosition();
-            const { latitude, longitude } = position.coords;
-            const locationLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-            await api.post('/api/attendance/check-in', {
-                location: locationLink,
-                remarks: 'Regular Check-in'
-            });
-            alert('Check-In Request Sent! 🟢');
-            fetchAttendanceData();
-        } catch (err) {
-            console.error(err);
-            // Allow check-in even if location fails, but note it
-            const errorMsg = err.code === 1 ? "Location Denied" : "Location Unavailable";
-
+            let locationLink = 'Manual Check-in';
             try {
-                await api.post('/api/attendance/check-in', {
-                    location: errorMsg,
-                    remarks: 'Regular Check-in (Location Failed)'
-                });
-                alert('Check-In Request Sent (without location)! 🟢');
-                fetchAttendanceData();
-            } catch (innerErr) {
-                alert(innerErr.response?.data?.msg || 'Request Failed');
+                const pos = await getPos();
+                locationLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+            } catch (posErr) {
+                console.warn('Location Access Denied');
             }
+
+            await api.post('/api/attendance/check-in', { location: locationLink, remarks: 'Portal Request' });
+            fetchData();
+        } catch (err) {
+            alert(err.response?.data?.msg || 'Request Error');
         } finally {
             setLoading(false);
         }
@@ -103,53 +89,41 @@ const EmployeeAttendance = () => {
 
     const handleCheckOutRequest = async () => {
         try {
-            await api.post('/api/attendance/check-out', { remarks: 'Regular Check-out' });
-            alert('Check-Out Request Sent! 🔴');
-            fetchAttendanceData();
+            await api.post('/api/attendance/check-out', { remarks: 'Portal Logout' });
+            fetchData();
         } catch (err) {
-            const data = err.response?.data;
-            let msg = data?.msg || 'Request Failed';
-            if (data?.debug) {
-                msg += `\nDebug: Found=${data.debug.found}, Status=${data.debug.checkInStatus}, Date=${data.debug.serverDate}`;
-            }
-            alert(msg);
+            alert(err.response?.data?.msg || 'Checkout Error');
         }
     };
 
     const handleHalfDaySubmit = async (e) => {
         e.preventDefault();
         try {
-            const formData = new FormData();
-            formData.append('reason', halfDayReason);
-            formData.append('type', halfDayType);
-            if (file) formData.append('attachment', file);
+            const fd = new FormData();
+            fd.append('reason', halfDayForm.reason);
+            fd.append('type', halfDayForm.type);
+            if (halfDayForm.file) fd.append('attachment', halfDayForm.file);
 
-            await api.post('/api/attendance/half-day', formData);
-            alert('Half-Day Request Sent! 🌓');
+            await api.post('/api/attendance/half-day', fd);
             setShowHalfDayForm(false);
-            fetchAttendanceData();
+            fetchData();
         } catch (err) {
-            console.error(err);
-            const errorMsg = err.response?.data?.msg || err.response?.data || err.message || 'Request Failed';
-            alert(`Request Failed: ${typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg}`);
+            alert('Request Failed');
         }
     };
 
     const handleLeaveSubmit = async (e) => {
         e.preventDefault();
         try {
-            const formData = new FormData();
-            formData.append('reason', leaveReason);
-            if (leaveFile) formData.append('attachment', leaveFile);
+            const fd = new FormData();
+            fd.append('reason', leaveForm.reason);
+            if (leaveForm.file) fd.append('attachment', leaveForm.file);
 
-            await api.post('/api/attendance/leave', formData);
-            alert('Leave Request Sent! 🏖️');
+            await api.post('/api/attendance/leave', fd);
             setShowLeaveForm(false);
-            fetchAttendanceData();
+            fetchData();
         } catch (err) {
-            console.error(err);
-            const errorMsg = err.response?.data?.msg || err.response?.data || err.message || 'Request Failed';
-            alert(`Request Failed: ${typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg}`);
+            alert('Request Failed');
         }
     };
 
@@ -157,383 +131,323 @@ const EmployeeAttendance = () => {
         e.preventDefault();
         try {
             const baseDate = new Date(forgotRecord.date).toDateString();
-            const fullDateStr = `${baseDate} ${forgotCheckOutTime}`;
-            
             await api.post(`/api/attendance/forgot-checkout/${forgotRecord._id}`, {
-                checkOutTime: fullDateStr,
+                checkOutTime: `${baseDate} ${forgotCheckOutTime}`,
                 overtimeMinutes: Number(overtimeMinutes),
                 reason: forgotReason
             });
-            alert('Checkout Time Submitted Successfully! ✅');
-            setForgotRecord(null);
-            fetchAttendanceData();
+            fetchData();
         } catch (err) {
-            console.error(err);
-            alert('Failed to submit: ' + (err.response?.data?.msg || err.message));
+            alert('Failed to submit missing checkout');
         }
     };
 
     const getStatusDisplay = () => {
-        if (!todayRecord) {
-            return {
-                text: "Not Checked In",
-                emoji: "🔴",
-                action: "checkin",
-                message: "Mark your presence now"
-            };
-        }
-
+        if (!todayRecord) return { text: "Offline", emoji: "🔴", action: "checkin", color: "from-rose-500 to-red-600" };
         const { checkIn, checkOut, halfDay, leave, status } = todayRecord;
-
-        if (leave?.isRequested && leave.status === 'Pending') {
-            return { text: "Leave Pending", emoji: "🏖️", action: "wait", message: "Waiting for admin approval" };
-        }
-
-        if (leave?.status === 'Approved') {
-            return { text: "On Leave", emoji: "🏖️", action: "done", message: "Enjoy your leave!" };
-        }
-
-        if (halfDay?.isRequested && halfDay.status === 'Pending') {
-            return { text: "Half Day Pending", emoji: "🌓", action: "wait", message: "Waiting for admin approval" };
-        }
-
-        // Check In Pending
-        if (checkIn?.status === 'Pending') {
-            const now = new Date();
-            const isAfter530 = now.getHours() > 17 || (now.getHours() === 17 && now.getMinutes() >= 30);
-
-            if (isAfter530) {
-                if (checkOut?.status === 'Pending') {
-                    return { text: "Check-Out Pending", emoji: "⏳", action: "wait", message: "Waiting for admin approval" };
-                }
-                if (checkOut?.status === 'Approved') {
-                    return { text: "Checked Out", emoji: "🔚", action: "done", message: "Day completed!" };
-                }
-                if (checkOut?.status === 'Rejected') {
-                    return { text: "Check-Out Rejected", emoji: "❌", action: "checkout", message: "Check-out rejected. Try again?" };
-                }
-                return { text: "Check-In Pending (After 5:30 PM)", emoji: "🕒", action: "checkout", message: "You can check out now" };
-            }
-            return { text: "Check-In Pending", emoji: "🕒", action: "wait", message: "Waiting for admin approval" };
-        }
-
-        // Check In Approval
-        if (checkIn?.status === 'Approved') {
-            // Check Out Pending
-            if (checkOut?.status === 'Pending') {
-                return { text: "Check-Out Pending", emoji: "⏳", action: "wait", message: "Waiting for admin approval" };
-            }
-            // Checked Out Completed
-            if (checkOut?.status === 'Approved') {
-                return { text: "Checked Out", emoji: "🔚", action: "done", message: "Day completed!" };
-            }
-            // Checked Out Rejected?
-            if (checkOut?.status === 'Rejected') {
-                return { text: "Check-Out Rejected", emoji: "❌", action: "checkout", message: "Check-out rejected. Try again?" };
-            }
-
-            // Default: Checked In (Present)
-            return { text: "Present", emoji: "🟢", action: "checkout", message: "Working..." };
-        }
-
-        if (checkIn?.status === 'Rejected') {
-            return { text: "Check-In Rejected", emoji: "❌", action: "contact_admin", message: "Contact Admin" };
-        }
         
-        if (status === 'Forgot Check-Out') {
-             return { text: "Missing Checkout", emoji: "⚠️", action: "forgot", message: "Please update your missing checkout" };
+        if (leave?.status === 'Pending') return { text: "Leave Pending", action: "wait", color: "from-orange-400 to-red-400" };
+        if (leave?.status === 'Approved') return { text: "On Leave", action: "done", color: "from-amber-400 to-orange-500" };
+        if (halfDay?.status === 'Pending') return { text: "Half-Day Pending", action: "wait", color: "from-purple-400 to-indigo-500" };
+
+        if (checkIn?.status === 'Pending') {
+             const isAfter530 = currentTime.getHours() > 17 || (currentTime.getHours() === 17 && currentTime.getMinutes() >= 30);
+             if (isAfter530) return { text: "Ready to Exit", action: "checkout", color: "from-blue-400 to-purple-600" };
+             return { text: "Awaiting Entry", action: "wait", color: "from-emerald-400 to-blue-500" };
         }
 
-        return { text: status, emoji: "❓", action: "none", message: "" };
+        if (checkIn?.status === 'Approved') {
+            if (checkOut?.status === 'Pending') return { text: "Logout Pending", action: "wait", color: "from-blue-500 to-indigo-600" };
+            if (checkOut?.status === 'Approved') return { text: "Shift Completed", action: "done", color: "from-emerald-500 to-blue-600" };
+            return { text: "On Duty", action: "checkout", color: "from-emerald-500 to-cyan-500" };
+        }
+
+        if (status === 'Forgot Check-Out') return { text: "Action Needed", action: "forgot", color: "from-rose-600 to-black" };
+        return { text: status, action: "none", color: "from-gray-700 to-slate-900" };
     };
 
-    const statusInfo = getStatusDisplay();
+    const sInfo = getStatusDisplay();
+
+    const NavTab = ({ id, label, icon: Icon }) => (
+        <button 
+            onClick={() => setActiveTab(id)}
+            className={`flex-1 flex flex-col items-center gap-2 py-4 border-b-2 transition-all font-black text-[10px] uppercase tracking-widest ${
+                activeTab === id ? 'border-cyan-500 text-cyan-400 bg-cyan-500/5' : 'border-transparent text-gray-600 hover:text-gray-400'
+            }`}
+        >
+            <Icon size={18} />
+            {label}
+        </button>
+    );
 
     return (
-        <div className="space-y-8 pb-20 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-sm">
-                    Attendance Portal
-                </h1>
-                <div className="text-sm font-medium text-gray-300 bg-white/5 px-6 py-3 rounded-full border border-white/10 shadow-inner flex items-center gap-2">
-                    <Calendar size={18} className="text-cyan-400" />
-                    {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="space-y-10 pb-32 max-w-7xl mx-auto font-sans">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-400 to-blue-500 tracking-tighter">
+                        Attendance <span className="underline decoration-cyan-500/30">Vault</span>
+                    </h1>
+                    <div className="flex items-center gap-4 mt-3">
+                         <div className="px-4 py-1.5 bg-slate-900/50 border border-white/10 rounded-full text-gray-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-inner">
+                            <ShieldCheck size={12} className="text-cyan-500" /> Secure Terminal
+                        </div>
+                        <div className="px-4 py-1.5 bg-slate-900/50 border border-white/10 rounded-full text-gray-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-inner">
+                            <Smartphone size={12} className="text-blue-500" /> GPS Verified
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            {/* Main Action Card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-10 md:p-14 flex flex-col items-center justify-center text-center min-h-[450px] mb-12 transition-all duration-500 hover:shadow-[0_16px_48px_rgba(0,0,0,0.6)] group">
                 
-                {/* Dynamic Background Glows */}
-                <div className={`absolute top-0 right-1/4 w-96 h-96 rounded-full blur-[120px] -translate-y-1/2 opacity-30 pointer-events-none transition-all duration-1000 group-hover:opacity-50 ${
-                    statusInfo.action === 'checkin' ? 'bg-cyan-500' :
-                    statusInfo.action === 'checkout' ? 'bg-rose-500' : 'bg-purple-500'
-                }`}></div>
-                <div className={`absolute bottom-0 left-1/4 w-80 h-80 rounded-full blur-[100px] translate-y-1/2 opacity-20 pointer-events-none transition-all duration-1000 group-hover:opacity-40 ${
-                    statusInfo.action === 'checkin' ? 'bg-blue-600' :
-                    statusInfo.action === 'checkout' ? 'bg-orange-600' : 'bg-indigo-600'
-                }`}></div>
-
-                {/* Live Clock Profile */}
-                <div className="z-10 flex flex-col items-center justify-center mb-10">
-                    <div className="relative mb-6">
-                        <div className="absolute -inset-3 rounded-full blur-2xl opacity-40 group-hover:opacity-70 transition duration-700 bg-gradient-to-r from-cyan-400 to-purple-500 animate-pulse-slow"></div>
-                        <div className="relative w-40 h-40 rounded-full bg-black/60 border border-white/20 flex items-center justify-center shadow-[inset_0_0_30px_rgba(255,255,255,0.05)] backdrop-blur-xl">
-                            <span className="text-7xl drop-shadow-2xl">{statusInfo.emoji}</span>
-                        </div>
+                <div className="bg-slate-900/80 shadow-2xl backdrop-blur-xl border border-white/10 rounded-[2rem] px-8 py-6 flex flex-col items-end group hover:border-cyan-500/30 transition-all">
+                    <div className="text-[10px] uppercase font-black text-gray-500 tracking-[0.3em] mb-1">Standard Time</div>
+                    <div className="text-4xl font-mono font-black text-white group-hover:text-cyan-400 transition-colors tracking-tighter">
+                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                     </div>
-                    <div className="text-6xl md:text-8xl font-mono font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-2xl mb-2">
-                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    <div className="text-[10px] font-bold text-gray-600 mt-1 uppercase tracking-widest">
+                        {currentTime.toLocaleDateString('en-US', { day: 'numeric', month: 'long', weekday: 'short' })}
                     </div>
-                </div>
-
-                {/* Status Indicator */}
-                <div className="z-10 mb-12 bg-white/5 border border-white/10 px-8 py-4 rounded-2xl backdrop-blur-xl shadow-lg ring-1 ring-white/5">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-wide">{statusInfo.text}</h2>
-                    {statusInfo.message && <p className="text-base text-gray-400 mt-2 font-medium">{statusInfo.message}</p>}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-6 z-10 flex-col sm:flex-row flex-wrap justify-center w-full max-w-3xl">
-                    {statusInfo.action === 'checkin' && (
-                        <>
-                            <button onClick={handleCheckInRequest} className="group relative w-full sm:w-auto overflow-hidden rounded-full p-[2px] transition-transform hover:scale-105 hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] flex-1 max-w-xs">
-                                <span className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
-                                <span className="relative flex items-center justify-center gap-3 bg-gray-900/90 backdrop-blur-xl px-8 py-5 rounded-full text-white font-bold text-lg transition-all group-hover:bg-transparent">
-                                    <Clock size={24} className="group-hover:animate-bounce" /> Request Check-In
-                                </span>
-                            </button>
-                            <button onClick={() => setShowLeaveForm(!showLeaveForm)} className="group relative w-full sm:w-auto overflow-hidden rounded-full p-[2px] transition-transform hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] flex-1 max-w-xs">
-                                <span className="absolute inset-0 bg-gradient-to-r from-orange-400 to-rose-400 opacity-60 group-hover:opacity-100 transition-opacity duration-300"></span>
-                                <span className="relative flex items-center justify-center gap-3 bg-gray-900/90 backdrop-blur-xl px-8 py-5 rounded-full text-white font-bold text-lg transition-all group-hover:bg-transparent">
-                                    <FileText size={24} /> Request Leave
-                                </span>
-                            </button>
-                        </>
-                    )}
-
-                    {statusInfo.action === 'checkout' && (
-                        <button onClick={handleCheckOutRequest} className="group relative w-full sm:w-auto overflow-hidden rounded-full p-[2px] transition-transform hover:scale-105 hover:shadow-[0_0_40px_rgba(225,29,72,0.5)] flex-1 max-w-sm">
-                            <span className="absolute inset-0 bg-gradient-to-r from-rose-500 to-red-600 opacity-80 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></span>
-                            <span className="relative flex items-center justify-center gap-3 bg-gray-900/90 backdrop-blur-xl px-10 py-5 rounded-full text-white font-bold text-xl transition-all group-hover:bg-transparent">
-                                <Clock size={26} /> Complete Check-Out
-                            </span>
-                        </button>
-                    )}
-
-                    {!showHalfDayForm && !showLeaveForm && !todayRecord && (
-                        <button onClick={() => setShowHalfDayForm(true)} className="group relative w-full sm:w-auto overflow-hidden rounded-full p-[1px] transition-transform hover:scale-105">
-                            <span className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-40 group-hover:opacity-80 transition-opacity duration-300"></span>
-                            <span className="relative flex items-center justify-center gap-2 bg-gray-900/90 backdrop-blur-xl px-8 py-4 rounded-full text-purple-200 font-medium transition-all hover:text-white">
-                                Request Half Day
-                            </span>
-                        </button>
-                    )}
                 </div>
             </div>
 
-            {/* Leave / Half Day Forms */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {showLeaveForm && (
-                    <div className="col-span-1 border border-orange-500/30 bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] shadow-[0_16px_40px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 blur-[60px] rounded-full"></div>
-                        <div className="flex justify-between items-center mb-8 relative z-10">
-                            <h3 className="text-2xl font-bold text-white flex items-center gap-4">
-                                <span className="bg-gradient-to-br from-orange-500/20 to-rose-500/20 p-3 rounded-2xl shadow-inner border border-white/5"><FileText className="text-orange-400" size={24} /></span>
-                                Full Day Leave
-                            </h3>
-                            <button onClick={() => setShowLeaveForm(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><XCircle className="text-gray-400 hover:text-white" size={28} /></button>
-                        </div>
-                        <form onSubmit={handleLeaveSubmit} className="space-y-6 relative z-10">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Reason for Leave</label>
-                                <textarea className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all outline-none resize-none shadow-inner" required value={leaveReason} onChange={e => setLeaveReason(e.target.value)} placeholder="Please elaborate..." rows="3"></textarea>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Supporting Document (Optional)</label>
-                                <div className="border-2 border-dashed border-white/10 rounded-2xl p-6 text-center hover:border-orange-500/40 transition-colors bg-black/20 group cursor-pointer">
-                                    <input type="file" className="text-sm text-gray-400 file:mr-5 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-500/20 file:text-orange-300 hover:file:bg-orange-500/30 cursor-pointer w-full transition-colors" onChange={e => setLeaveFile(e.target.files[0])} />
-                                </div>
-                            </div>
-                            <button type="submit" className="w-full bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-500 hover:to-rose-500 text-white font-bold text-lg py-4 rounded-2xl shadow-[0_8px_20px_rgba(249,115,22,0.3)] transform active:scale-[0.98] transition-all">Submit Leave Request</button>
-                        </form>
-                    </div>
-                )}
-
-                {showHalfDayForm && (
-                     <div className="col-span-1 border border-purple-500/30 bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] shadow-[0_16px_40px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 blur-[60px] rounded-full"></div>
-                        <div className="flex justify-between items-center mb-8 relative z-10">
-                            <h3 className="text-2xl font-bold text-white flex items-center gap-4">
-                                <span className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 p-3 rounded-2xl shadow-inner border border-white/5"><Clock className="text-purple-400" size={24} /></span>
-                                Half Day Request
-                            </h3>
-                            <button onClick={() => setShowHalfDayForm(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><XCircle className="text-gray-400 hover:text-white" size={28} /></button>
-                        </div>
-                        <form onSubmit={handleHalfDaySubmit} className="space-y-6 relative z-10">
-                            <div className="grid grid-cols-1 gap-6">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Which Half?</label>
-                                    <select className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all outline-none appearance-none shadow-inner cursor-pointer" value={halfDayType} onChange={e => setHalfDayType(e.target.value)}>
-                                        <option value="First Half" className="bg-gray-900">First Half (Morning)</option>
-                                        <option value="Second Half" className="bg-gray-900">Second Half (Afternoon)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Reason</label>
-                                <textarea className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all outline-none resize-none shadow-inner" required value={halfDayReason} onChange={e => setHalfDayReason(e.target.value)} placeholder="Please elaborate..." rows="2"></textarea>
-                            </div>
-                            <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-lg py-4 rounded-2xl shadow-[0_8px_20px_rgba(147,51,234,0.3)] transform active:scale-[0.98] transition-all">Submit Half Day</button>
-                        </form>
-                    </div>
-                )}
+            {/* Navigation Tabs */}
+            <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden flex shadow-inner">
+                <NavTab id="checkin" label="Access Control" icon={MousePointer2} />
+                <NavTab id="history" label="Activity Log" icon={Briefcase} />
+                <NavTab id="holidays" label="Calendar & Holidays" icon={Umbrella} />
             </div>
 
-            {/* Forgot Check-Out Alert / Form */}
-            {forgotRecord && (
-                <div className="border border-red-500/40 bg-gradient-to-r from-red-950/60 to-black/80 backdrop-blur-3xl p-8 md:p-10 rounded-[2.5rem] shadow-[0_16px_40px_rgba(220,38,38,0.2)] mb-10 animate-pulse-slow">
-                    <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                        <div className="bg-gradient-to-br from-red-500/20 to-rose-500/20 p-5 rounded-3xl shadow-inner border border-red-500/20 shrink-0">
-                            <AlertCircle className="text-red-400 drop-shadow-lg" size={40} />
-                        </div>
-                        <div className="flex-1 w-full text-center md:text-left">
-                            <h3 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-400 mb-3 tracking-tight">Action Required: Missing Check-Out</h3>
-                            <p className="text-lg text-gray-300 mb-8 max-w-2xl">
-                                We noticed you didn't check out on <b className="text-white bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 ml-1">{new Date(forgotRecord.date).toLocaleDateString()}</b>. 
-                                Please update your time below.
-                            </p>
-                            <form onSubmit={handleForgotSubmit} className="bg-black/50 p-8 rounded-[2rem] border border-white/5 space-y-8 shadow-inner">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Actual Check-Out Time <span className="text-red-500">*</span></label>
-                                        <input 
-                                            type="time" 
+            {activeTab === 'checkin' && (
+                <div className="space-y-12 animate-fade-in-up">
+                    {/* Visual Status Card */}
+                    <div className="relative group p-1 w-full bg-gradient-to-br from-white/10 via-transparent to-white/5 rounded-[3rem] shadow-2xl">
+                         <div className={`rounded-[2.9rem] bg-gradient-to-br ${sInfo.color} p-12 md:p-20 text-center relative overflow-hidden transition-all duration-700`}>
+                            {/* Decorative Background Elements */}
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 animate-pulse"></div>
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/20 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4"></div>
+                            
+                            <div className="relative z-10 flex flex-col items-center">
+                                <span className={`text-[10px] uppercase font-black tracking-[0.5em] text-white/60 mb-6 bg-black/20 px-6 py-2 rounded-full border border-white/10 shadow-lg`}>
+                                    System Protocol: {sInfo.text}
+                                </span>
+                                
+                                {sInfo.action === 'checkin' && (
+                                    <div className="space-y-10 w-full max-w-sm">
+                                        <button 
+                                            onClick={handleCheckInRequest}
+                                            className="w-full bg-white text-gray-900 py-6 rounded-[2rem] font-black text-xl uppercase tracking-widest shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 group"
+                                        >
+                                            <MousePointer2 className="group-hover:rotate-12 transition-transform" /> Sign In
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-6">
+                                             <button onClick={() => setShowLeaveForm(true)} className="bg-black/20 hover:bg-black/40 text-white py-4 rounded-3xl font-bold text-xs uppercase border border-white/10 transition-all">Request Leave</button>
+                                             <button onClick={() => setShowHalfDayForm(true)} className="bg-black/20 hover:bg-black/40 text-white py-4 rounded-3xl font-bold text-xs uppercase border border-white/10 transition-all">Half Day</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {sInfo.action === 'checkout' && (
+                                    <div className="space-y-8 w-full max-w-sm">
+                                        <button 
+                                            onClick={handleCheckOutRequest}
+                                            className="w-full bg-black text-white py-6 rounded-[2rem] font-black text-xl uppercase tracking-widest shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
+                                        >
+                                            Sign Out <LogOut size={22} className="animate-pulse" />
+                                        </button>
+                                        <div className="text-white/60 text-xs font-bold font-mono tracking-widest">Shift Progress: Standard 09:00 - 17:30</div>
+                                    </div>
+                                )}
+
+                                {sInfo.action === 'wait' && (
+                                    <div className="p-10 bg-white/10 backdrop-blur-3xl rounded-[3rem] border border-white/20 shadow-xl max-w-md w-full animate-pulse">
+                                         <h3 className="text-2xl font-black text-white italic">"Scanning Authorization..."</h3>
+                                         <p className="text-white/60 text-sm mt-3 font-bold">Please wait until admin approves your entry request.</p>
+                                    </div>
+                                )}
+
+                                {sInfo.action === 'done' && (
+                                    <div className="p-10 bg-emerald-500/20 backdrop-blur-3xl rounded-[3rem] border border-emerald-400/20 shadow-xl max-w-md w-full">
+                                         <CheckCircle className="text-white mx-auto mb-6" size={64} />
+                                         <h3 className="text-3xl font-black text-white">Day Complete</h3>
+                                         <p className="text-white/70 text-sm mt-3 font-bold">Shift successfully synchronized. Your activity has been logged.</p>
+                                    </div>
+                                )}
+                            </div>
+                         </div>
+                    </div>
+
+                    {/* Modals for Leave/Half-day (Inlined for simplicity in Employee section) */}
+                    {(showLeaveForm || showHalfDayForm) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             {showLeaveForm && (
+                                 <div className="glass-card p-10 bg-slate-900 border-orange-500/30 animate-fade-in-up">
+                                     <div className="flex justify-between items-center mb-8">
+                                         <h3 className="text-2xl font-black text-white flex items-center gap-4">
+                                            <Umbrella className="text-orange-500" /> Full Day Leave
+                                         </h3>
+                                         <button onClick={() => setShowLeaveForm(false)} className="text-gray-600 hover:text-white"><XCircle /></button>
+                                     </div>
+                                     <form onSubmit={handleLeaveSubmit} className="space-y-6">
+                                          <textarea 
                                             required 
-                                            className="w-full bg-white/5 border border-red-500/40 rounded-2xl p-5 text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-inner text-lg" 
-                                            value={forgotCheckOutTime} 
-                                            onChange={e => setForgotCheckOutTime(e.target.value)} 
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Overtime (Minutes)</label>
-                                        <input 
-                                            type="number" 
-                                            min="0"
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white focus:ring-2 focus:ring-white/20 outline-none transition-all shadow-inner text-lg placeholder-gray-600" 
-                                            value={overtimeMinutes} 
-                                            onChange={e => setOvertimeMinutes(e.target.value)} 
-                                            placeholder="e.g., 60"
-                                        />
-                                    </div>
+                                            className="glass-input w-full p-5 font-bold" 
+                                            placeholder="Elaborate the reason explicitly..." 
+                                            rows="3"
+                                            value={leaveForm.reason}
+                                            onChange={e => setLeaveForm({...leaveForm, reason: e.target.value})}
+                                          />
+                                          <button className="w-full bg-orange-600 hover:bg-orange-500 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all">Submit Protocol</button>
+                                     </form>
+                                 </div>
+                             )}
+                             {showHalfDayForm && (
+                                 <div className="glass-card p-10 bg-slate-900 border-purple-500/30 animate-fade-in-up">
+                                     <div className="flex justify-between items-center mb-8">
+                                         <h3 className="text-2xl font-black text-white flex items-center gap-4">
+                                            <Sun className="text-purple-500" /> Half Day Session
+                                         </h3>
+                                         <button onClick={() => setShowHalfDayForm(false)} className="text-gray-600 hover:text-white"><XCircle /></button>
+                                     </div>
+                                      <form onSubmit={handleHalfDaySubmit} className="space-y-6">
+                                          <select 
+                                            className="glass-input w-full p-5 appearance-none font-bold" 
+                                            value={halfDayForm.type}
+                                            onChange={e => setHalfDayForm({...halfDayForm, type: e.target.value})}
+                                          >
+                                              <option value="First Half">First Half (9 AM - 1 PM)</option>
+                                              <option value="Second Half">Second Half (1 PM - 5:30 PM)</option>
+                                          </select>
+                                          <textarea 
+                                            required 
+                                            className="glass-input w-full p-5 font-bold" 
+                                            placeholder="Reason for half-day session..." 
+                                            rows="3"
+                                            value={halfDayForm.reason}
+                                            onChange={e => setHalfDayForm({...halfDayForm, reason: e.target.value})}
+                                          />
+                                          <button className="w-full bg-purple-600 hover:bg-purple-500 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all">Commit Session</button>
+                                     </form>
+                                 </div>
+                             )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'history' && (
+                <div className="space-y-8 animate-fade-in-up">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Summary Column */}
+                        <div className="lg:col-span-1 space-y-8">
+                            <div className="glass-card p-10 bg-gradient-to-br from-indigo-900 to-slate-950 border-white/5 space-y-8">
+                                <h3 className="text-2xl font-black text-white flex items-center gap-4"><TrendingUp className="text-indigo-400" /> Usage Summary</h3>
+                                <div className="grid grid-cols-2 gap-6 font-black uppercase text-[10px] tracking-widest">
+                                    <div className="space-y-2"><div className="text-gray-500">Days Present</div><div className="text-3xl text-emerald-400">{history.filter(h => h.status === 'Present' || h.status === 'Checked-Out' || h.status === 'Over Work').length}</div></div>
+                                    <div className="space-y-2"><div className="text-gray-500">Total Hours</div><div className="text-3xl text-indigo-400">{Math.floor(history.reduce((acc, h) => acc + (h.duration || 0), 0) / 60)}H</div></div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-300 mb-3 tracking-wide">Reason / Remarks <span className="text-red-500">*</span></label>
-                                    <textarea 
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white focus:ring-2 focus:ring-white/20 outline-none transition-all resize-none shadow-inner placeholder-gray-600 text-lg" 
-                                        required 
-                                        value={forgotReason} 
-                                        onChange={e => setForgotReason(e.target.value)} 
-                                        placeholder="Explain the missed check-out..." 
-                                        rows="2"
-                                    ></textarea>
+                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                     <div className="h-full bg-indigo-500 w-[65%]" />
                                 </div>
-                                <button type="submit" className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-5 rounded-2xl shadow-[0_12px_30px_rgba(220,38,38,0.4)] transform active:scale-[0.98] transition-all text-xl tracking-wide">
-                                    Resolve Missed Check-Out
-                                </button>
-                            </form>
+                            </div>
+
+                            <div className="glass-card p-10 border-white/5 bg-slate-950 space-y-6">
+                                <h4 className="font-black text-white text-xs uppercase tracking-widest text-center">Status Index</h4>
+                                <div className="space-y-4">
+                                     {[
+                                         { label: 'Present', color: 'bg-emerald-500' },
+                                         { label: 'Absent', color: 'bg-rose-500' },
+                                         { label: 'On Leave', color: 'bg-orange-500' },
+                                         { label: 'Half Day', color: 'bg-purple-500' }
+                                     ].map(status => (
+                                         <div key={status.label} className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter">
+                                             <div className="flex items-center gap-3 text-gray-500"><div className={`w-2 h-2 rounded-full ${status.color}`} /> {status.label}</div>
+                                             <div className="text-white">{history.filter(h => h.status === status.label).length}</div>
+                                         </div>
+                                     ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* List Column */}
+                        <div className="lg:col-span-2 glass-card overflow-hidden bg-slate-900/40 border-white/5">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-white/5 border-b border-white/10">
+                                        <tr className="text-[10px] uppercase font-black tracking-widest text-gray-500">
+                                            <th className="p-8">Log Sequence</th>
+                                            <th className="p-8">Gate Entry</th>
+                                            <th className="p-8">Gate Exit</th>
+                                            <th className="p-8">Metrics</th>
+                                            <th className="p-8">Security</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {history.map(record => (
+                                            <tr key={record._id} className="hover:bg-white/5 transition-all group font-bold">
+                                                <td className="p-8">
+                                                    <div className="text-white text-base">{new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                                                    <div className="text-[10px] text-gray-600 tracking-tighter uppercase font-black uppercase">{new Date(record.date).toLocaleDateString('en-GB', { weekday: 'long' })}</div>
+                                                </td>
+                                                <td className="p-8 text-emerald-400 font-mono text-xs">{record.checkIn?.time ? new Date(record.checkIn.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
+                                                <td className="p-8 text-rose-400 font-mono text-xs">{record.checkOut?.time ? new Date(record.checkOut.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
+                                                <td className="p-8 text-indigo-400 font-mono text-xs uppercase">{record.duration ? `${Math.floor(record.duration / 60)}H ${record.duration % 60}M` : '--'}</td>
+                                                <td className="p-8 text-xs">
+                                                    <span className={`px-4 py-2 rounded-[2rem] tracking-tighter font-black uppercase ${
+                                                        record.status.includes('Pending') ? 'bg-yellow-500/10 text-yellow-500' :
+                                                        record.status === 'Absent' ? 'bg-rose-500/10 text-rose-500' : 
+                                                        'bg-emerald-500/10 text-emerald-400'
+                                                    }`}>
+                                                        {record.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* History Table */}
-            <div className="bg-gray-900/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-2xl font-bold text-white flex items-center gap-4">
-                        <span className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 p-4 rounded-2xl shadow-inner border border-white/5"><Calendar className="text-cyan-400" size={24} /></span>
-                        Attendance Tracking
-                    </h3>
-                </div>
-                
-                <div className="overflow-hidden rounded-3xl border border-white/5 bg-black/60 shadow-inner">
-                    <div className="overflow-x-auto min-h-[300px]">
-                        <table className="w-full text-left whitespace-nowrap">
-                            <thead>
-                                <tr className="bg-white/5 text-xs uppercase tracking-widest text-gray-400 font-bold border-b border-white/10">
-                                    <th className="px-8 py-6">Date</th>
-                                    <th className="px-8 py-6">Status</th>
-                                    <th className="px-8 py-6">Check In</th>
-                                    <th className="px-8 py-6">Check Out</th>
-                                    <th className="px-8 py-6">Duration</th>
-                                    <th className="px-8 py-6">Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {history.length > 0 ? history.map(record => (
-                                    <tr key={record._id} className="hover:bg-white/5 transition-colors group">
-                                        <td className="px-8 py-6 text-gray-200 font-semibold text-base">
-                                            {new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border shadow-sm ${
-                                                record.status === 'Present' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                record.status === 'Checked-Out' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                record.status === 'Half Day' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                record.status === 'On Leave' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                                                record.status === 'Over Work' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
-                                                record.status.includes('Pending') ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                                                'bg-red-500/10 text-red-400 border-red-500/20'
-                                            }`}>
-                                                {record.status === 'Present' ? <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> : ''}
-                                                {record.status === 'Present' ? 'Present' :
-                                                    record.status === 'Absent' ? 'Absent' :
-                                                    record.status === 'Half Day' ? 'Half Day' :
-                                                    record.status === 'On Leave' ? 'On Leave' :
-                                                    record.status === 'Over Work' ? 'Over Work' :
-                                                    record.status === 'Checked-Out' ? 'Checked-Out' :
-                                                    record.status.includes('Pending') ? 'Pending' : record.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-6 text-gray-300">
-                                            <div className="flex flex-col">
-                                                <span className="font-mono text-base font-medium">{record.checkIn?.time ? new Date(record.checkIn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
-                                                {record.checkIn?.status === 'Pending' && <span className="text-yellow-500 text-[10px] uppercase font-bold mt-1 tracking-wider">Awaiting Approval</span>}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-gray-300">
-                                            <div className="flex flex-col">
-                                                <span className="font-mono text-base font-medium">{record.checkOut?.time ? new Date(record.checkOut.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
-                                                {record.checkOut?.status === 'Pending' && <span className="text-yellow-500 text-[10px] uppercase font-bold mt-1 tracking-wider">Awaiting Approval</span>}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            {record.duration ? (
-                                                <span className="inline-block bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-cyan-400 font-mono text-sm font-bold shadow-sm">
-                                                    {`${Math.floor(record.duration / 60)}h ${record.duration % 60}m`}
-                                                </span>
-                                            ) : <span className="text-gray-600 font-mono">--</span>}
-                                        </td>
-                                        <td className="px-8 py-6 text-gray-400 max-w-xs truncate font-medium" title={record.adminRemarks}>
-                                            {record.adminRemarks || '-'}
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="6" className="px-8 py-16 text-center">
-                                            <div className="flex flex-col items-center justify-center text-gray-500 gap-4">
-                                                <Calendar size={40} className="opacity-40" />
-                                                <p className="text-lg font-medium">No attendance records found</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+            {activeTab === 'holidays' && (
+                <div className="space-y-12 animate-fade-in-up max-w-4xl mx-auto">
+                    <div className="flex items-center gap-6 mb-4">
+                         <div className="p-4 bg-cyan-600 rounded-3xl shadow-xl shadow-cyan-900/40"><Umbrella className="text-white" size={32} /></div>
+                         <div>
+                            <h3 className="text-4xl font-black text-white">Company Calendar</h3>
+                            <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-2">Public & Corporate Scheduled Holidays</p>
+                         </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {holidays.map(h => (
+                            <div key={h._id} className="glass-card p-1 bg-gradient-to-br from-white/10 to-transparent rounded-[2.5rem] group hover:scale-[1.02] transition-all">
+                                <div className="bg-slate-900/80 rounded-[2.4rem] p-8 flex items-center gap-8 group-hover:bg-slate-900 transition-colors">
+                                    <div className="w-20 h-20 bg-slate-800 rounded-3xl flex flex-col items-center justify-center border border-white/5 shadow-inner">
+                                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{new Date(h.date).toLocaleString('default', { month: 'short' })}</span>
+                                        <span className="text-3xl font-black text-white">{new Date(h.date).getDate()}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-2xl font-black text-white tracking-tight uppercase">{h.title}</h4>
+                                        <div className="flex items-center gap-3 mt-2 text-xs font-bold text-gray-500">
+                                            <Briefcase size={12} className="text-cyan-500" /> {h.type} Observed
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="text-gray-800 group-hover:text-cyan-500 transition-colors" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {holidays.length === 0 && (
+                        <div className="text-center py-20 bg-white/5 border border-white/5 rounded-[3rem] border-dashed">
+                             <p className="text-gray-600 font-black uppercase tracking-[0.2em]">No holiday logs detected</p>
+                        </div>
+                    )}
                 </div>
-            </div>
+            )}
         </div>
     );
 };
+
 export default EmployeeAttendance;

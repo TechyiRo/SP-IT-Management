@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Plus, Search, Edit2, Trash2, UserPlus, Shield, Eye, EyeOff, Check, X } from 'lucide-react';
+import { 
+    Plus, Search, Edit2, Trash2, UserPlus, 
+    Shield, Eye, EyeOff, Check, X, Filter,
+    MoreVertical, Mail, Phone, MapPin, 
+    Briefcase, Calendar, ChevronRight,
+    ArrowUpRight, Users as UsersIcon, ShieldCheck,
+    UserMinus, Zap
+} from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 
 const Users = () => {
@@ -59,7 +66,7 @@ const Users = () => {
     const resetForm = () => {
         setFormData({
             username: '', password: '', fullName: '', email: '', designation: 'Developer', department: 'IT', phone: '', address: '', baseSalary: '', employeeId: '', role: 'employee', status: 'active',
-            permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false, canAccessResources: false, canManagePasswords: false }
+            permissions: { canAddProducts: false, canAddCompanies: false, canViewAllTasks: false, canAddWorkDetails: true, canViewReports: false, canAccessResources: false, canManagePasswords: false, canViewPasswordDetails: false }
         });
         setEditMode(false);
         setCurrentUserId(null);
@@ -161,306 +168,257 @@ const Users = () => {
 
     const filteredUsers = Array.isArray(users) ? users.filter(user =>
         (user.fullName && user.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase()))
+        (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.employeeId && user.employeeId.toLowerCase().includes(searchTerm.toLowerCase()))
     ) : [];
 
     return (
-        <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">User Management</h1>
-                    <p className="text-xs sm:text-sm text-gray-400">Manage employees, roles, and permissions</p>
+        <div className="space-y-10 pb-20 animate-fade-in">
+            {/* Header & Stats Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-1 space-y-4">
+                     <h1 className="text-4xl font-black text-white tracking-tighter italic">"Human Capital"</h1>
+                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Resource Infrastructure & Access Control</p>
+                     <button
+                        onClick={openCreateModal}
+                        className="glass-button w-full flex items-center justify-center gap-3 group mt-6"
+                    >
+                        <UserPlus size={18} className="group-hover:rotate-12 transition-transform" /> Recruit Asset
+                    </button>
                 </div>
-                <button
-                    onClick={openCreateModal}
-                    className="glass-button flex items-center justify-center gap-2 group w-full sm:w-auto py-2.5 sm:py-2 text-sm"
-                >
-                    <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                    Add New User
-                </button>
+                
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                     {[
+                         { label: 'Total Force', value: users.length, icon: UsersIcon, color: 'text-indigo-500' },
+                         { label: 'Active Nodes', value: users.filter(u => u.status === 'active').length, icon: ShieldCheck, color: 'text-emerald-500' },
+                         { label: 'Privileged', value: users.filter(u => u.role === 'admin').length, icon: Shield, color: 'text-amber-500' }
+                     ].map((stat, i) => (
+                         <div key={i} className="glass-card p-6 flex flex-col justify-center">
+                             <div className="flex items-center justify-between mb-4">
+                                 <stat.icon className={stat.color} size={20} />
+                                 <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Global Index</span>
+                             </div>
+                             <div className="text-3xl font-black text-white font-mono tracking-tighter">{loading ? '...' : stat.value}</div>
+                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">{stat.label}</p>
+                         </div>
+                     ))}
+                </div>
             </div>
 
-            <div className="glass-card p-4 mb-6">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            {/* Filter & Search Terminal */}
+            <div className="glass-card p-1 items-center flex flex-col md:flex-row gap-4 bg-white/[0.02]">
+                <div className="relative flex-1 group w-full">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 w-5 h-5 group-focus-within:text-indigo-500 transition-colors" />
                     <input
                         type="text"
-                        placeholder="Search users by name or ID..."
-                        className="glass-input w-full pl-10"
+                        placeholder="Search assets by name, username or system ID..."
+                        className="glass-input w-full pl-16 bg-transparent border-none focus:ring-0 text-sm font-bold placeholder-slate-700 h-16"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+                <div className="h-8 w-[1px] bg-white/5 hidden md:block" />
+                <button className="flex items-center gap-2 px-8 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors">
+                    <Filter size={14} /> Refine Matrix
+                </button>
             </div>
 
-            <div className="space-y-4">
-                {/* Desktop Table */}
-                <div className="hidden md:block glass-card overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-white/5 border-b border-white/10 uppercase text-xs text-gray-400">
-                            <tr>
-                                <th className="p-4">Employee</th>
-                                <th className="p-4">Role</th>
-                                <th className="p-4">Department</th>
-                                <th className="p-4">Base Salary</th>
-                                <th className="p-4">Status</th>
-                                <th className="p-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/10">
-                            {loading ? (
-                                <tr><td colSpan="5" className="p-8 text-center"><div className="animate-pulse text-cyan-400">Loading users...</div></td></tr>
-                            ) : filteredUsers.length === 0 ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-gray-500">No users found</td></tr>
-                            ) : filteredUsers.map(user => (
-                                <tr key={user._id} className="hover:bg-white/5 transition-colors group">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow overflow-hidden">
-                                                {user.profilePicture ? (
-                                                    <img
-                                                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
-                                                        alt={user.fullName}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    user.fullName ? user.fullName.charAt(0) : 'U'
-                                                )}
-                                            </div>
-                                            <div>
-                                                <div className="font-medium text-white">{user.fullName || 'No Name'}</div>
-                                                <div className="text-sm text-gray-400">@{user.username}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'}`}>
-                                            {user.role}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-gray-300">{user.department}</td>
-                                    <td className="p-4 text-emerald-400 font-mono">₹ {(user.baseSalary || 0).toLocaleString()}</td>
-                                    <td className="p-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium max-w-fit flex items-center gap-1 ${user.status === 'active' ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                                            {user.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleEdit(user)} className="p-2 hover:bg-white/10 rounded-lg text-cyan-400 transition-colors" title="Edit">
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button onClick={() => handleDelete(user._id)} className="p-2 hover:bg-white/10 rounded-lg text-red-400 transition-colors" title="Delete">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Mobile View (Cards) */}
-                <div className="md:hidden space-y-3">
-                    {loading ? (
-                        <div className="p-8 text-center"><div className="animate-pulse text-cyan-400">Loading users...</div></div>
-                    ) : filteredUsers.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">No users found</div>
-                    ) : (
-                        filteredUsers.map(user => (
-                            <div key={user._id} className="glass-card p-4 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white overflow-hidden shadow-lg">
+            {/* Main User Matrix */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {loading ? (
+                    <div className="col-span-full py-20 text-center animate-pulse text-slate-600 font-black uppercase tracking-[0.5em]">Scanning Human Nodes...</div>
+                ) : filteredUsers.length === 0 ? (
+                    <div className="col-span-full py-20 text-center text-slate-600 font-black uppercase tracking-[0.2em] border-2 border-dashed border-white/5 rounded-[3rem]">No Active Signals Found</div>
+                ) : filteredUsers.map(user => (
+                    <div key={user._id} className="glass-card glass-card-hover group p-1">
+                        <div className="p-8 space-y-8 h-full flex flex-col">
+                            {/* Top Info */}
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-5">
+                                    <div className="relative w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px] group-hover:rotate-6 transition-transform duration-500 overflow-hidden shadow-2xl shadow-indigo-500/20">
                                         {user.profilePicture ? (
-                                            <img src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`} alt="" className="w-full h-full object-cover" />
-                                        ) : (user.fullName?.charAt(0))}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-white text-sm truncate">{user.fullName}</h3>
-                                        <p className="text-[10px] text-gray-500">@{user.username}</p>
-                                    </div>
-                                    <div className={`px-2 py-0.5 rounded text-[10px] border ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'}`}>
-                                        {user.role}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 py-2 border-y border-white/5">
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Department</p>
-                                        <p className="text-gray-300 text-xs">{user.department}</p>
+                                            <img
+                                                src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
+                                                alt={user.fullName}
+                                                className="w-full h-full object-cover rounded-[1.4rem]"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-slate-900 rounded-[1.4rem] flex items-center justify-center text-xl font-black text-white italic">
+                                                {user.fullName?.charAt(0)}
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Status</p>
-                                        <div className="flex items-center gap-1.5 capitalize">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`} />
-                                            <span className={`text-xs ${user.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>{user.status}</span>
-                                        </div>
+                                        <h3 className="text-lg font-black text-white italic tracking-tight truncate max-w-[150px]">{user.fullName || 'Unidentified'}</h3>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">@{user.username}</p>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center justify-between">
-                                    <span className="text-emerald-400 font-mono text-sm">₹ {user.baseSalary?.toLocaleString()}</span>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleEdit(user)} className="p-2 bg-white/5 rounded-lg text-cyan-400 active:scale-95 transition-all"><Edit2 size={14} /></button>
-                                        <button onClick={() => handleDelete(user._id)} className="p-2 bg-white/5 rounded-lg text-red-400 active:scale-95 transition-all"><Trash2 size={14} /></button>
-                                    </div>
+                                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                    user.role === 'admin' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                                }`}>
+                                    {user.role}
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
-            </div>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editMode ? "Edit User" : "Create New User"}>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Basic Info Section */}
-                    <div className="space-y-4">
-                        <h4 className="text-sm uppercase tracking-wider text-gray-500 font-semibold border-b border-gray-700 pb-2">Basic Information</h4>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Username</label>
-                                <input required className="glass-input w-full" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
+                            {/* Center Metrics */}
+                            <div className="grid grid-cols-2 gap-6 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+                                <div>
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2 italic"><Briefcase size={10} className="text-slate-700" /> Sector</p>
+                                    <p className="text-[11px] font-black text-white uppercase tracking-tight">{user.department} / {user.designation}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2 italic"><Zap size={10} className="text-slate-700" /> Fiscal</p>
+                                    <p className="text-[11px] font-black text-emerald-400 font-mono italic">₹ {(user.baseSalary || 0).toLocaleString()}</p>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Full Name</label>
-                                <input required className="glass-input w-full" value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
-                            </div>
-                        </div>
 
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium text-gray-400">Password {editMode && '(Leave blank to keep current)'}</label>
-                            <div className="relative">
-                                <input
-                                    required={!editMode}
-                                    type={showPassword ? "text" : "password"}
-                                    className="glass-input w-full pr-10"
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {/* Status & ID */}
+                            <div className="flex items-center justify-between text-[11px] font-bold">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.05)] ${user.status === 'active' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50 blink-slow'}`} />
+                                    <span className={user.status === 'active' ? 'text-emerald-500 font-black uppercase italic' : 'text-rose-500 font-black uppercase italic'}>{user.status}</span>
+                                </div>
+                                <span className="text-slate-700 font-black uppercase tracking-widest text-[9px]">Node ID: {user.employeeId || '---'}</span>
+                            </div>
+
+                            {/* Action Row */}
+                            <div className="pt-6 flex gap-3 mt-auto border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                                <button onClick={() => handleEdit(user)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/5 transition-all text-[10px] font-black uppercase tracking-widest group/btn">
+                                    <Edit2 size={14} className="group-hover/btn:text-indigo-500 transition-colors" /> Modify Node
                                 </button>
-                            </div>
-                            {/* Strength Indicator */}
-                            {formData.password && (
-                                <div className="mt-2 flex items-center gap-2">
-                                    <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
-                                        <div className={`h-full transition-all duration-300 ${passwordStrength.color}`} style={{ width: `${(passwordStrength.score / 5) * 100}%` }}></div>
-                                    </div>
-                                    <span className="text-xs text-gray-400">{passwordStrength.label}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Email</label>
-                                <input required type="email" className="glass-input w-full" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Designation</label>
-                                <select className="glass-input w-full bg-slate-900" value={formData.designation} onChange={e => setFormData({ ...formData, designation: e.target.value })}>
-                                    <option>Developer</option>
-                                    <option>Designer</option>
-                                    <option>Manager</option>
-                                    <option>HR</option>
-                                    <option>Sales</option>
-                                    <option>Support</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Department</label>
-                                <input required className="glass-input w-full" value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Employee ID</label>
-                                <input required className="glass-input w-full" value={formData.employeeId} onChange={e => setFormData({ ...formData, employeeId: e.target.value })} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Base Salary (Monthly)</label>
-                                <input type="number" className="glass-input w-full" placeholder="e.g. 15000" value={formData.baseSalary} onChange={e => setFormData({ ...formData, baseSalary: e.target.value })} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Address</label>
-                                <input className="glass-input w-full" placeholder="Full Address" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Role</label>
-                                <select className="glass-input w-full bg-slate-900" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
-                                    <option value="employee">Employee</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-400">Status</label>
-                                <select className="glass-input w-full bg-slate-900" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
+                                <button onClick={() => handleDelete(user._id)} className="w-14 items-center justify-center flex py-3 bg-rose-500/5 hover:bg-rose-500/20 text-rose-500 rounded-2xl border border-rose-500/10 transition-all">
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         </div>
                     </div>
+                ))}
+            </div>
 
-                    {/* Permissions Section */}
+            {/* Modal Redesign (Using global styles) */}
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editMode ? "Modify Subsystem Node" : "Register Human Asset"}>
+                <form onSubmit={handleSubmit} className="space-y-8 p-4">
+                    {/* Visual Group: ID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-8 glass-card border-none bg-indigo-500/5">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 italic">Username Signal</label>
+                            <input required className="glass-input w-full font-black text-sm tracking-tight" placeholder="system_handle" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 italic">Full Identity</label>
+                            <input required className="glass-input w-full font-black text-sm tracking-tight" placeholder="Legal Full Name" value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
+                        </div>
+                    </div>
+
+                    {/* Visual Group: Auth */}
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-5 italic">Access Key {editMode && '(Silent Override available)'}</label>
+                        <div className="relative group px-4">
+                            <input
+                                required={!editMode}
+                                type={showPassword ? "text" : "password"}
+                                className="glass-input w-full pr-14 font-mono font-bold text-sm tracking-widest"
+                                placeholder="••••••••••••"
+                                value={formData.password}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                            />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors">
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                        {formData.password && (
+                            <div className="px-5 space-y-2">
+                                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest">
+                                    <span className="text-slate-600 italic">Encryption Strength</span>
+                                    <span className={passwordStrength.color.replace('bg-', 'text-')}>{passwordStrength.label}</span>
+                                </div>
+                                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                     <div className={`h-full transition-all duration-700 ${passwordStrength.color}`} style={{ width: `${(passwordStrength.score / 5) * 100}%` }}></div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Visual Group: Metrics */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Email Endpoint</label>
+                            <input required type="email" className="glass-input w-full font-bold text-sm" placeholder="node@sp-systems.pro" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Sector Role</label>
+                            <select className="glass-input w-full bg-slate-900 font-bold text-sm" value={formData.designation} onChange={e => setFormData({ ...formData, designation: e.target.value })}>
+                                <option>Developer</option>
+                                <option>Designer</option>
+                                <option>Executive</option>
+                                <option>Operations</option>
+                                <option>Analyst</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Permissions Toggle Redesign */}
                     {formData.role === 'employee' && (
-                        <div className="space-y-4">
-                            <h4 className="text-sm uppercase tracking-wider text-gray-500 font-semibold border-b border-gray-700 pb-2 flex items-center gap-2">
-                                <Shield className="w-4 h-4" /> Permissions
-                            </h4>
-                            <div className="grid grid-cols-1 gap-3">
+                        <div className="p-8 glass-card border-none bg-white/[0.01] space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Access Privileges</h4>
+                                <Shield size={16} className="text-indigo-500" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {Object.entries({
-                                    canAddProducts: 'Can Add Products',
-                                    canAddCompanies: 'Can Add Companies',
-                                    canViewAllTasks: 'Can View All Tasks',
-                                    canAddWorkDetails: 'Can Add Work Details',
-                                    canViewReports: 'Can View Reports',
-                                    canAccessResources: 'Can Access Resources',
+                                    canAddProducts: 'Inventory Write',
+                                    canAddCompanies: 'Network Expansion',
+                                    canViewAllTasks: 'Global Task Access',
+                                    canAddWorkDetails: 'Log Submission',
+                                    canViewReports: 'Analytics Insight',
+                                    canAccessResources: 'Asset Access',
+                                    canManagePasswords: 'Security Override'
                                 }).map(([key, label]) => (
-                                    <div key={key} className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer" onClick={() => togglePermission(key)}>
-                                        <span className="text-sm text-gray-300">{label}</span>
-                                        <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.permissions[key] ? 'bg-cyan-500' : 'bg-gray-700'}`}>
-                                            <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform duration-300 ${formData.permissions[key] ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                    <div 
+                                        key={key} 
+                                        onClick={() => togglePermission(key)}
+                                        className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-500 cursor-pointer ${
+                                            formData.permissions[key] 
+                                                ? 'bg-indigo-500/10 border-indigo-500/30' 
+                                                : 'bg-white/5 border-white/[0.02] hover:border-white/10'
+                                        }`}
+                                    >
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${formData.permissions[key] ? 'text-white' : 'text-slate-600'}`}>{label}</span>
+                                        <div className={`w-8 h-4 rounded-full relative transition-colors duration-500 ${formData.permissions[key] ? 'bg-indigo-500' : 'bg-slate-800'}`}>
+                                            <div className={`absolute top-1 left-1 w-2 h-2 rounded-full bg-white transition-transform duration-500 ${formData.permissions[key] ? 'translate-x-4' : 'translate-x-0'}`}></div>
                                         </div>
                                     </div>
                                 ))}
-
-                                {/* Custom toggle for canManagePasswords and nested canViewPasswordDetails */}
-                                <div className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer" onClick={() => togglePermission('canManagePasswords')}>
-                                    <span className="text-sm text-gray-300">Can Manage Passwords</span>
-                                    <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.permissions.canManagePasswords ? 'bg-cyan-500' : 'bg-gray-700'}`}>
-                                        <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform duration-300 ${formData.permissions.canManagePasswords ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                                    </div>
-                                </div>
-
-                                {formData.permissions.canManagePasswords && (
-                                    <div className="flex items-center justify-between p-3 glass-card hover:bg-white/5 transition-colors cursor-pointer ml-4 border-l-2 border-gray-700" onClick={() => togglePermission('canViewPasswordDetails')}>
-                                        <span className="text-sm text-gray-300">Can View Password Details</span>
-                                        <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.permissions.canViewPasswordDetails ? 'bg-yellow-500' : 'bg-gray-700'}`}>
-                                            <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform duration-300 ${formData.permissions.canViewPasswordDetails ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     )}
 
-                    <button type="submit" className="w-full glass-button mt-4 py-3 text-sm font-bold uppercase tracking-wide">
-                        {editMode ? 'Update User' : 'Create User Account'}
+                    <div className="flex items-center gap-6 px-4">
+                        <select className="glass-input flex-1 font-black text-xs uppercase tracking-widest" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
+                            <option value="employee">Level: Staff</option>
+                            <option value="admin">Level: Override</option>
+                        </select>
+                        <select className={`glass-input flex-1 font-black text-xs uppercase tracking-widest ${formData.status === 'active' ? 'text-emerald-400' : 'text-rose-400'}`} value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
+                            <option value="active">Signal: Active</option>
+                            <option value="inactive">Signal: Dropped</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" className="glass-button w-full shadow-indigo-500/40">
+                        {editMode ? 'Commit Database Update' : 'Initialize Node Deployment'}
                     </button>
                 </form>
             </Modal>
+
+            <style>{`
+                .blink-slow {
+                    animation: blink 2s infinite;
+                }
+                @keyframes blink {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                }
+            `}</style>
         </div>
     );
 };

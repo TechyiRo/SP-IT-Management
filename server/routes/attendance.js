@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
+const { syncPayrollWithAttendance } = require('../services/payrollService');
 
 // @route   POST api/attendance/check-in
 // @desc    Request Check-In
@@ -272,6 +273,10 @@ router.put('/:id/action', auth, async (req, res) => {
         await attendance.save();
 
         console.log(`[After Save] Status: ${attendance.status}, Leave Status: ${attendance.leave?.status}`);
+        
+        // Sync with Payroll
+        await syncPayrollWithAttendance(attendance.employee, attendance.date);
+        
         res.json(attendance);
 
     } catch (err) {
@@ -346,6 +351,10 @@ router.put('/:id', auth, async (req, res) => {
         });
 
         await attendance.save();
+
+        // Sync with Payroll
+        await syncPayrollWithAttendance(attendance.employee, attendance.date);
+
         res.json(attendance);
     } catch (err) {
         console.error(err.message);
@@ -405,6 +414,9 @@ router.post('/forgot-checkout/:id', auth, async (req, res) => {
         attendance.status = 'Pending Check-Out';
         attendance.forgotCheckOut = false; // Resolved the forgot state, back to pending
         await attendance.save();
+
+        // Sync with Payroll
+        await syncPayrollWithAttendance(attendance.employee, attendance.date);
 
         res.json(attendance);
     } catch (err) {

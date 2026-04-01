@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEye, FaEyeSlash, FaPlus, FaTrash, FaBuilding, FaLock, FaUser, FaSave, FaSearch, FaEdit } from 'react-icons/fa';
+import { 
+    Lock, Key, Shield, Eye, EyeOff, Plus, Trash2, 
+    Building2, Save, Search, Edit3, ShieldAlert, 
+    Globe, Terminal, Cpu, Zap, ChevronRight, X
+} from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 
-// Helper for color mapping to proper Tailwind classes to avoid purge issues
 const colorMap = {
-    blue: { text: 'text-blue-400', border: 'border-blue-500', bg: 'bg-blue-500', hoverBorder: 'hover:border-blue-500/50' },
-    red: { text: 'text-red-400', border: 'border-red-500', bg: 'bg-red-500', hoverBorder: 'hover:border-red-500/50' },
-    green: { text: 'text-green-400', border: 'border-green-500', bg: 'bg-green-500', hoverBorder: 'hover:border-green-500/50' },
-    purple: { text: 'text-purple-400', border: 'border-purple-500', bg: 'bg-purple-500', hoverBorder: 'hover:border-purple-500/50' },
-    orange: { text: 'text-orange-400', border: 'border-orange-500', bg: 'bg-orange-500', hoverBorder: 'hover:border-orange-500/50' },
+    blue: { text: 'text-blue-400', border: 'border-blue-500/30', glow: 'shadow-blue-500/20', bg: 'bg-blue-500/10' },
+    red: { text: 'text-rose-400', border: 'border-rose-500/30', glow: 'shadow-rose-500/20', bg: 'bg-rose-500/10' },
+    green: { text: 'text-emerald-400', border: 'border-emerald-500/30', glow: 'shadow-emerald-500/20', bg: 'bg-emerald-500/10' },
+    purple: { text: 'text-fuchsia-400', border: 'border-fuchsia-500/30', glow: 'shadow-fuchsia-500/20', bg: 'bg-fuchsia-500/10' },
+    orange: { text: 'text-amber-400', border: 'border-amber-500/30', glow: 'shadow-amber-500/20', bg: 'bg-amber-500/10' },
 };
 
 const PasswordManager = () => {
@@ -19,17 +22,14 @@ const PasswordManager = () => {
     const [credentials, setCredentials] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    // New Credentials Form State
     const [newCredentials, setNewCredentials] = useState([
         { name: '', username: '', password: '', details: '', color: 'blue' }
     ]);
 
-    // Edit State
     const [editingCredential, setEditingCredential] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-    // Visibilty toggle state for list
     const [visiblePasswords, setVisiblePasswords] = useState({});
 
     useEffect(() => {
@@ -48,9 +48,7 @@ const PasswordManager = () => {
         try {
             const res = await axios.get('/api/resources/companies');
             setCompanies(res.data);
-        } catch (err) {
-            console.error(err);
-        }
+        } catch (err) { console.error(err); }
     };
 
     const fetchCredentials = async (companyId) => {
@@ -58,11 +56,8 @@ const PasswordManager = () => {
         try {
             const res = await axios.get(`/api/credentials/${companyId}`);
             setCredentials(res.data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+        } catch (err) { console.error(err); } 
+        finally { setLoading(false); }
     };
 
     const handleAddRow = () => {
@@ -82,11 +77,9 @@ const PasswordManager = () => {
     };
 
     const handleSave = async () => {
-        if (!selectedCompany) return alert('Please select a company first');
-
-        // Filter out empty rows
+        if (!selectedCompany) return alert('Select enterprise node first');
         const toSave = newCredentials.filter(c => c.name && c.username && c.password);
-        if (toSave.length === 0) return alert('Please enter at least one credential');
+        if (toSave.length === 0) return alert('Enter at least one valid fragment');
 
         setSaving(true);
         try {
@@ -94,13 +87,10 @@ const PasswordManager = () => {
                 companyId: selectedCompany,
                 credentials: toSave
             });
-            // Reset form and refresh list
             setNewCredentials([{ name: '', username: '', password: '', details: '', color: 'blue' }]);
             fetchCredentials(selectedCompany);
-            alert('Credentials saved successfully');
         } catch (err) {
-            console.error(err);
-            alert('Error saving credentials');
+            alert('Encryption sequence failed');
         } finally {
             setSaving(false);
         }
@@ -112,299 +102,372 @@ const PasswordManager = () => {
     };
 
     const handleUpdate = async () => {
-        if (!editingCredential.name || !editingCredential.username || !editingCredential.password) {
-            return alert('Name, Username and Password are required');
-        }
-
+        if (!editingCredential.name || !editingCredential.username || !editingCredential.password) return;
         setSaving(true);
         try {
             const res = await axios.put(`/api/credentials/${editingCredential._id}`, editingCredential);
-            // Update list
             setCredentials(credentials.map(c => c._id === res.data._id ? res.data : c));
             setIsEditModalOpen(false);
             setEditingCredential(null);
-            alert('Updated successfully');
         } catch (err) {
-            console.error(err);
-            alert('Failed to update credential');
+            alert('Update sequence interrupted');
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this credential?')) return;
+        if (!window.confirm('Erase this data fragment forever?')) return;
         try {
             await axios.delete(`/api/credentials/${id}`);
             setCredentials(credentials.filter(c => c._id !== id));
-        } catch (err) {
-            console.error(err);
-        }
+        } catch (err) { console.error(err); }
     };
 
     const toggleVisibility = (id) => {
-        setVisiblePasswords(prev => ({
-            ...prev,
-            [id]: !prev[id]
-        }));
+        setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    return (
-        <div className="p-6 text-white min-h-screen">
-            <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                Password Manager
-            </h1>
+    const filteredCredentials = credentials.filter(c => 
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.username.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-            {/* Company Selection */}
-            <div className="mb-8 max-w-xl">
-                <label className="block text-gray-400 mb-2">Select Company</label>
-                <div className="relative">
-                    <FaBuilding className="absolute left-3 top-3 text-gray-500" />
-                    <select
-                        value={selectedCompany}
-                        onChange={(e) => setSelectedCompany(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="">-- Choose a Company --</option>
-                        {companies.map(c => (
-                            <option key={c._id} value={c._id}>{c.name}</option>
-                        ))}
-                    </select>
+    return (
+        <div className="space-y-10 pb-32 animate-fade-in relative">
+            {/* Header Area */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
+                            <Shield className="w-8 h-8 text-indigo-500" />
+                        </div>
+                        <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+                            Key <span className="text-indigo-500 not-italic">Vault</span>
+                        </h1>
+                    </div>
+                    <p className="text-slate-500 font-bold ml-16 flex items-center gap-2 text-sm">
+                        <Terminal className="w-4 h-4 text-indigo-500/50" /> Secure Storage Hub v4.0 | AES-256 Protocol
+                    </p>
+                </div>
+                
+                <div className="flex items-center gap-5 ml-16 lg:ml-0 bg-black/20 p-2 rounded-3xl border border-white/5">
+                    <div className="flex items-center gap-4 px-6 group">
+                        <Building2 className="w-5 h-5 text-indigo-500 group-hover:scale-110 transition-transform" />
+                        <select 
+                            className="bg-transparent text-white outline-none border-none font-black text-sm p-4 cursor-pointer uppercase tracking-widest min-w-[200px]"
+                            value={selectedCompany}
+                            onChange={(e) => setSelectedCompany(e.target.value)}
+                        >
+                            <option value="">-- SELECT SECTOR --</option>
+                            {companies.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            {selectedCompany && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Add New Section */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 backdrop-blur-sm"
+            {selectedCompany ? (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Left: Input Console */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="lg:col-span-12 xl:col-span-4 space-y-6"
                     >
-                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                            <FaPlus className="text-green-400" /> Add New Passwords
-                        </h2>
-
-                        <div className="space-y-4">
-                            {newCredentials.map((cred, index) => (
-                                <div key={index} className="flex flex-col gap-2 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50 relative">
-                                    {newCredentials.length > 1 && (
-                                        <button
-                                            onClick={() => handleRemoveRow(index)}
-                                            className="absolute top-2 right-2 text-red-400 hover:text-red-300"
-                                        >
-                                            <FaTrash size={12} />
-                                        </button>
-                                    )}
-                                    <input
-                                        type="text"
-                                        placeholder="Service Name (e.g. AWS)"
-                                        value={cred.name}
-                                        onChange={(e) => handleInputChange(index, 'name', e.target.value)}
-                                        className="bg-slate-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                    />
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Username/Email"
-                                            value={cred.username}
-                                            onChange={(e) => handleInputChange(index, 'username', e.target.value)}
-                                            className="bg-slate-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Password"
-                                            value={cred.password}
-                                            onChange={(e) => handleInputChange(index, 'password', e.target.value)}
-                                            className="bg-slate-800 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="flex gap-4 mt-6">
-                            <button
-                                onClick={handleAddRow}
-                                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors flex items-center gap-2"
-                            >
-                                <FaPlus /> Add Another Row
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-lg text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ml-auto"
-                            >
-                                <FaSave /> {saving ? 'Saving...' : 'Save All'}
-                            </button>
-                        </div>
-                    </motion.div>
-
-                    {/* List Section */}
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                            <FaLock className="text-blue-400" /> Stored Credentials
-                        </h2>
-
-                        {loading ? (
-                            <div className="text-center text-gray-500 py-8">Loading...</div>
-                        ) : credentials.length === 0 ? (
-                            <div className="text-center text-gray-500 py-8 bg-slate-800/30 rounded-lg border border-slate-700 border-dashed">
-                                No credentials found for this company.
+                        <div className="glass-card p-8 border-indigo-500/10 shadow-2xl space-y-8 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full"></div>
+                            
+                            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                                <Plus className="text-indigo-500" />
+                                <h2 className="text-xl font-black text-white uppercase italic tracking-tight">Deposit <span className="text-indigo-500 not-italic">Fragment</span></h2>
                             </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {credentials.map(cred => (
-                                    <motion.div
-                                        key={cred._id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className={`bg-slate-800 p-4 rounded-lg border border-l-4 transition-colors group border-slate-700 hover:border-${cred.color || 'blue'}-500/50`}
-                                        style={{ borderLeftColor: `var(--color-${cred.color || 'blue'}-500)` }} /* Fallback or class-based approach needed */
-                                    >
-                                        <div className={`relative overflow-hidden`}>
-                                            <div className={`absolute top-0 left-0 w-1 h-full bg-${cred.color || 'blue'}-500`}></div> {/* Left Border Strip */}
-                                            <div className="pl-3">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className={`font-semibold text-lg text-${cred.color || 'blue'}-400`}>{cred.name}</h3>
-                                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={() => handleEdit(cred)}
-                                                            className="text-gray-500 hover:text-blue-400 transition-colors"
-                                                            title="Edit"
-                                                        >
-                                                            <FaEdit />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(cred._id)}
-                                                            className="text-gray-500 hover:text-red-400 transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            <FaTrash />
-                                                        </button>
-                                                    </div>
-                                                </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
-                                                    <div className="bg-slate-900/50 p-2 rounded border border-slate-700/50 flex flex-col">
-                                                        <span className="text-gray-500 text-xs uppercase tracking-wider mb-1">Username</span>
-                                                        <span className="font-mono text-gray-300">{cred.username}</span>
-                                                    </div>
-                                                    <div className="bg-slate-900/50 p-2 rounded border border-slate-700/50 flex flex-col relative">
-                                                        <span className="text-gray-500 text-xs uppercase tracking-wider mb-1">Password</span>
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="font-mono text-gray-300">
-                                                                {visiblePasswords[cred._id] ? cred.password : '••••••••••••'}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => toggleVisibility(cred._id)}
-                                                                className={`text-gray-400 hover:text-${cred.color || 'blue'}-400 ml-2`}
-                                                            >
-                                                                {visiblePasswords[cred._id] ? <FaEyeSlash /> : <FaEye />}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                            <div className="space-y-6">
+                                {newCredentials.map((cred, index) => (
+                                    <motion.div layout key={index} className="space-y-4 p-6 bg-black/40 rounded-[2rem] border border-white/5 relative group">
+                                        {newCredentials.length > 1 && (
+                                            <button onClick={() => handleRemoveRow(index)} className="absolute top-4 right-4 text-slate-600 hover:text-rose-500 transition-colors">
+                                                <X size={16} />
+                                            </button>
+                                        )}
+                                        
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 ml-4">Identifier</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="e.g. AWS ROOT ACCESS"
+                                                className="glass-input w-full p-4 text-sm font-black italic tracking-wide"
+                                                value={cred.name}
+                                                onChange={(e) => handleInputChange(index, 'name', e.target.value)}
+                                            />
+                                        </div>
 
-                                                {cred.details && (
-                                                    <div className="bg-slate-900/30 p-3 rounded border border-slate-700/30 text-sm text-gray-400 italic mb-2">
-                                                        "{cred.details}"
-                                                    </div>
-                                                )}
-
-                                                <div className="mt-3 text-xs text-gray-500 flex items-center justify-end gap-1">
-                                                    Added by: <span className="text-gray-400">{cred.addedBy?.fullName || 'Unknown'}</span>
-                                                    <span className="mx-1">•</span>
-                                                    {new Date(cred.createdAt).toLocaleDateString()}
-                                                </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 ml-4">Username</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="UID/EMAIL"
+                                                    className="glass-input w-full p-4 text-xs font-mono"
+                                                    value={cred.username}
+                                                    onChange={(e) => handleInputChange(index, 'username', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 ml-4">Cipher</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="PASSWORD"
+                                                    className="glass-input w-full p-4 text-xs font-mono"
+                                                    value={cred.password}
+                                                    onChange={(e) => handleInputChange(index, 'password', e.target.value)}
+                                                />
                                             </div>
                                         </div>
                                     </motion.div>
                                 ))}
                             </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            {/* Edit Modal */}
-            <Modal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                title="Edit Credential"
-            >
-                {editingCredential && (
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-gray-400 mb-1 text-sm">Service Name</label>
-                            <input
-                                type="text"
-                                value={editingCredential.name}
-                                onChange={(e) => setEditingCredential({ ...editingCredential, name: e.target.value })}
-                                className="w-full bg-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-gray-400 mb-1 text-sm">Username</label>
-                                <input
-                                    type="text"
-                                    value={editingCredential.username}
-                                    onChange={(e) => setEditingCredential({ ...editingCredential, username: e.target.value })}
-                                    className="w-full bg-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-gray-400 mb-1 text-sm">Password</label>
-                                <input
-                                    type="text"
-                                    value={editingCredential.password}
-                                    onChange={(e) => setEditingCredential({ ...editingCredential, password: e.target.value })}
-                                    className="w-full bg-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-gray-400 mb-1 text-sm">Details</label>
-                            <textarea
-                                value={editingCredential.details}
-                                onChange={(e) => setEditingCredential({ ...editingCredential, details: e.target.value })}
-                                className="w-full bg-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 h-24 resize-none"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-gray-400 mb-2 text-sm">Color Tag</label>
-                            <div className="flex gap-2">
-                                {Object.keys(colorMap).map(color => (
-                                    <button
-                                        key={color}
-                                        onClick={() => setEditingCredential({ ...editingCredential, color })}
-                                        className={`w-8 h-8 rounded-full border-2 transition-all ${editingCredential.color === color ? 'border-white scale-110' : 'border-transparent opacity-50 hover:opacity-100'}`}
-                                        style={{ backgroundColor: `var(--color-${color}-500, ${color})` }}
-                                    >
-                                        <div className={`w-full h-full rounded-full bg-${color}-500`}></div>
-                                    </button>
-                                ))}
+
+                            <div className="flex gap-4 pt-4">
+                                <button 
+                                    onClick={handleAddRow}
+                                    className="flex-1 p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all active:scale-95"
+                                >
+                                    + ADD BLOCK
+                                </button>
+                                <button 
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="flex-[2] glass-button py-4 flex items-center justify-center gap-3 text-xs tracking-[0.2em]"
+                                >
+                                    {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={16} />}
+                                    {saving ? 'ENCRYPTING...' : 'INITIALIZE SAVE'}
+                                </button>
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button
-                                onClick={() => setIsEditModalOpen(false)}
-                                className="px-4 py-2 rounded-lg text-gray-400 hover:text-white"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleUpdate}
-                                disabled={saving}
-                                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg text-white font-semibold hover:from-blue-500 hover:to-blue-400 disabled:opacity-50"
-                            >
-                                {saving ? 'Updating...' : 'Update Credential'}
-                            </button>
+                        {/* Security Tip */}
+                        <div className="glass-card p-8 bg-indigo-500/5 border-indigo-500/20">
+                             <div className="flex items-center gap-4 mb-4">
+                                <ShieldAlert className="text-indigo-400" size={20} />
+                                <h4 className="text-sm font-black text-white uppercase italic">Security Protocol</h4>
+                             </div>
+                             <p className="text-xs font-bold text-slate-500 leading-relaxed italic">
+                                Credentials stored in the Key Vault are encrypted. Only administrators with authenticated tokens can perform bypass operations.
+                             </p>
                         </div>
+                    </motion.div>
+
+                    {/* Right: Repository */}
+                    <div className="lg:col-span-12 xl:col-span-8 space-y-6">
+                        <div className="glass-card p-6 flex items-center gap-6 border-indigo-500/10 shadow-xl">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                <input 
+                                    type="text" 
+                                    placeholder="SEARCH KEY REPOSITORY..." 
+                                    className="glass-input w-full pl-16 py-4 font-black italic text-sm tracking-widest"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="hidden md:flex items-center gap-4 px-6 border-l border-white/10 uppercase font-black text-[10px] tracking-[0.3em] text-slate-600 italic">
+                                <Cpu size={14} className="text-indigo-500" />
+                                {filteredCredentials.length} Nodes Found
+                            </div>
+                        </div>
+
+                        {loading ? (
+                            <div className="glass-card py-40 flex flex-col items-center justify-center gap-6 opacity-30 italic">
+                                <motion.div 
+                                    animate={{ rotate: 360 }} 
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                >
+                                    <Zap size={40} className="text-indigo-500" />
+                                </motion.div>
+                                <p className="text-sm font-black uppercase tracking-widest">Accessing Vault Data...</p>
+                            </div>
+                        ) : filteredCredentials.length === 0 ? (
+                            <div className="glass-card py-40 flex flex-col items-center justify-center gap-6 opacity-30 italic border-dashed border-white/10">
+                                <ShieldAlert size={60} className="text-slate-800" />
+                                <div className="text-center space-y-1">
+                                    <h3 className="text-xl font-black text-white tracking-tight uppercase">NULL REPOSITORY</h3>
+                                    <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">No key fragments detected in this sector</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <AnimatePresence mode="popLayout">
+                                    {filteredCredentials.map(cred => {
+                                        const theme = colorMap[cred.color || 'blue'];
+                                        return (
+                                            <motion.div
+                                                layout
+                                                key={cred._id}
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                className={`glass-card p-0 overflow-hidden group border-white/5 hover:border-white/10 transition-all duration-700 hover:${theme.glow}`}
+                                            >
+                                                <div className={`p-8 space-y-6 relative`}>
+                                                    <div className={`absolute top-0 left-0 w-1.5 h-full ${theme.bg.replace('10', '80')}`}></div>
+                                                    
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-3">
+                                                                <h3 className={`text-lg font-black italic uppercase tracking-tight group-hover:${theme.text} transition-colors`}>{cred.name}</h3>
+                                                            </div>
+                                                            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-600">Fragment ID: {cred._id.slice(-8).toUpperCase()}</p>
+                                                        </div>
+                                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                                                            <button onClick={() => handleEdit(cred)} className="p-3 bg-white/5 hover:bg-indigo-500/20 rounded-xl text-slate-500 hover:text-indigo-400 transition-all shadow-xl"><Edit3 size={14} /></button>
+                                                            <button onClick={() => handleDelete(cred._id)} className="p-3 bg-white/5 hover:bg-rose-500/20 rounded-xl text-slate-500 hover:text-rose-500 transition-all shadow-xl"><Trash2 size={14} /></button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div className="bg-black/40 rounded-3xl p-5 border border-white-[0.03] space-y-4 shadow-inner">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Access Point</span>
+                                                                <div className="flex items-center justify-between text-xs font-mono bg-white/5 p-3 rounded-2xl group/sub">
+                                                                    <span className="text-indigo-300 font-bold truncate max-w-[150px]">{cred.username}</span>
+                                                                    <Globe size={10} className="text-slate-700 group-hover/sub:text-indigo-500 transition-colors" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Cipher Key</span>
+                                                                <div className="flex items-center justify-between text-xs font-mono bg-indigo-500/5 border border-indigo-500/10 p-3 rounded-2xl group/sub transition-all hover:bg-indigo-500/10">
+                                                                    <span className="text-white font-bold tracking-[0.3em]">
+                                                                        {visiblePasswords[cred._id] ? cred.password : '••••••••••••'}
+                                                                    </span>
+                                                                    <button onClick={() => toggleVisibility(cred._id)} className="text-slate-600 hover:text-indigo-400 transition-colors">
+                                                                        {visiblePasswords[cred._id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {cred.details && (
+                                                            <div className="relative p-5 rounded-3xl bg-white/[0.02] border border-white/5 italic text-[11px] text-slate-400 leading-relaxed font-medium">
+                                                                <span className="absolute -top-3 left-6 px-2 bg-[#050505] text-[8px] font-black uppercase tracking-[0.2em] text-slate-700">Metadata</span>
+                                                                "{cred.details}"
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center overflow-hidden">
+                                                                <div className="w-4 h-4 bg-indigo-500/20 rounded-full animate-pulse"></div>
+                                                            </div>
+                                                            <div className="text-[9px] font-black uppercase tracking-widest text-slate-600">Authorized by <span className="text-slate-400 ml-1">{cred.addedBy?.fullName || 'SYSTEM'}</span></div>
+                                                        </div>
+                                                        <div className="text-[9px] font-mono text-slate-700 font-bold">{new Date(cred.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </AnimatePresence>
+                            </div>
+                        )}
                     </div>
-                )}
-            </Modal>
+                </div>
+            ) : (
+                <div className="glass-card py-48 flex flex-col items-center justify-center gap-8 border-dashed border-white/10 opacity-50 relative overflow-hidden">
+                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent"></div>
+                     <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-10 bg-slate-900/50 rounded-full border border-white/5 shadow-2xl relative z-10"
+                     >
+                        <Lock size={80} className="text-slate-800" />
+                     </motion.div>
+                     <div className="text-center space-y-4 relative z-10">
+                        <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter">Vault <span className="text-indigo-500 not-italic">Locked</span></h2>
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-[0.4em] max-w-sm mx-auto leading-relaxed">Select specialized sector node to bypass security and access key fragments</p>
+                     </div>
+                </div>
+            )}
+
+            {/* Edit Modal Custom Styling */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-3xl bg-black/80">
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-[#050505] w-full max-w-xl overflow-hidden rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)]"
+                    >
+                         <div className="p-12 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                            <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">Fragment <span className="text-indigo-500 not-italic">Override</span></h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="p-4 bg-white/5 hover:bg-rose-500/20 rounded-2xl text-slate-500 hover:text-rose-500 transition-all duration-500 border border-white/5"><X size={24} /></button>
+                        </div>
+                        
+                        {editingCredential && (
+                            <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="p-12 space-y-8 font-bold">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-black ml-4">Entity Identifier</label>
+                                        <input 
+                                            type="text" 
+                                            value={editingCredential.name}
+                                            onChange={(e) => setEditingCredential({ ...editingCredential, name: e.target.value })}
+                                            className="glass-input w-full p-4 font-black italic uppercase tracking-wider"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-black ml-4">Access Point</label>
+                                            <input 
+                                                type="text" 
+                                                value={editingCredential.username}
+                                                onChange={(e) => setEditingCredential({ ...editingCredential, username: e.target.value })}
+                                                className="glass-input w-full p-4 text-xs font-mono"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-black ml-4">Cipher Key</label>
+                                            <input 
+                                                type="text" 
+                                                value={editingCredential.password}
+                                                onChange={(e) => setEditingCredential({ ...editingCredential, password: e.target.value })}
+                                                className="glass-input w-full p-4 text-xs font-mono"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-black ml-4">Metadata Analysis</label>
+                                        <textarea 
+                                            value={editingCredential.details}
+                                            onChange={(e) => setEditingCredential({ ...editingCredential, details: e.target.value })}
+                                            className="glass-input w-full p-4 text-xs h-24 italic resize-none"
+                                        />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-black ml-4">Tag Signature</label>
+                                        <div className="flex gap-4">
+                                            {Object.keys(colorMap).map(color => (
+                                                <button
+                                                    key={color}
+                                                    type="button"
+                                                    onClick={() => setEditingCredential({ ...editingCredential, color })}
+                                                    className={`w-10 h-10 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center ${editingCredential.color === color ? 'border-white scale-110 shadow-lg' : 'border-white/5 opacity-40 hover:opacity-100'}`}
+                                                    style={{ backgroundColor: `var(--color-${color}-500, ${color})` }}
+                                                >
+                                                    <div className={`w-4 h-4 rounded-full bg-${color}-500 shadow-[0_0_10px_rgba(255,255,255,0.2)]`}></div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" disabled={saving} className="glass-button w-full py-6 text-base tracking-[0.2em] font-black italic shadow-indigo-500/30">
+                                    {saving ? 'UPDATING ARCHIVE...' : 'COMMIT FRAGMENT UPDATE'}
+                                </button>
+                            </form>
+                        )}
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

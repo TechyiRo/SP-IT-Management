@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
+const { syncPayrollWithAttendance } = require('./payrollService');
 
 /**
  * markAbsentsForDate
@@ -13,6 +14,26 @@ const Attendance = require('../models/Attendance');
 const markAbsentsForDate = async (targetDate) => {
     const date = new Date(targetDate);
     date.setHours(0, 0, 0, 0);
+
+    const Holiday = require('../models/Holiday');
+    const holidayRecord = await Holiday.findOne({ date });
+
+    if (holidayRecord) {
+        // Mark all as holiday if no record exists
+        const employees = await User.find({ role: 'employee', status: 'active' });
+        for (const employee of employees) {
+            const hasRecord = await Attendance.findOne({ employee: employee._id, date });
+            if (!hasRecord) {
+                await Attendance.create({ employee: employee._id, date, status: 'Holiday' });
+                await syncPayrollWithAttendance(employee._id, date);
+            } else if (hasRecord.status === 'Absent') {
+                hasRecord.status = 'Holiday';
+                await hasRecord.save();
+                await syncPayrollWithAttendance(employee._id, date);
+            }
+        }
+        return { absent: 0, forgotCheckOut: 0, totalEmployees: employees.length, msg: `Holiday observed: ${holidayRecord.title}` };
+    }
 
     const employees = await User.find({ role: 'employee', status: 'active' });
     let absentCount = 0;
@@ -29,6 +50,7 @@ const markAbsentsForDate = async (targetDate) => {
                     date,
                     status: 'Absent'
                 });
+                await syncPayrollWithAttendance(employee._id, date);
                 absentCount++;
             } catch (err) {
                 // Duplicate key: record already exists (race condition), skip
@@ -44,6 +66,7 @@ const markAbsentsForDate = async (targetDate) => {
                 attendance.forgotCheckOut = true;
                 attendance.status = 'Forgot Check-Out';
                 await attendance.save();
+                await syncPayrollWithAttendance(employee._id, date);
                 forgotCount++;
 
                 const Notification = require('../models/Notification');
@@ -64,6 +87,7 @@ const markAbsentsForDate = async (targetDate) => {
             if (!hasApprovedLeave && !hasApprovedHalfDay && attendance.status !== 'Absent') {
                 attendance.status = 'Absent';
                 await attendance.save();
+                await syncPayrollWithAttendance(employee._id, date);
                 absentCount++;
             }
         }
