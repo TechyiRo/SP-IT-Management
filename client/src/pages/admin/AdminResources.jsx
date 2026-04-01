@@ -4,7 +4,7 @@ import {
     Package, Building2, Plus, Search, Trash2, X, Edit3, 
     Warehouse, Truck, Layers, Globe, IndianRupee, MapPin,
     Target, Cpu, Zap, Activity, Filter, ChevronRight,
-    Briefcase, Factory, User, Mail, Phone, ExternalLink
+    Briefcase, Factory, User, Mail, Phone, ExternalLink, ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '../../components/ui/Modal';
