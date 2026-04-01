@@ -291,7 +291,7 @@ const AdminAttendance = () => {
                                                 <span className="text-slate-500 font-bold uppercase tracking-widest">Protocol Time</span>
                                                 <div className="flex items-center gap-2 text-white font-mono font-bold bg-white/5 px-3 py-1 rounded-xl">
                                                     <Clock size={12} className="text-indigo-500" />
-                                                    {formatTime(req[req.reqType === 'Check-In' ? 'checkIn' : req.reqType === 'Check-Out' ? 'checkOut' : req.reqType.toLowerCase().replace(' ', '')]?.time)}
+                                                    {formatTime(req[req.reqType === 'Check-In' ? 'checkIn' : req.reqType === 'Check-Out' ? 'checkOut' : req.reqType === 'Half Day' ? 'halfDay' : 'leave']?.time)}
                                                 </div>
                                             </div>
                                             
@@ -305,22 +305,25 @@ const AdminAttendance = () => {
                                             )}
                                         </div>
 
-                                        {req[req.reqType.toLowerCase().replace(' ', '')]?.remarks && (
-                                            <div className="relative p-4 rounded-2xl bg-white/[0.02] border border-white/5 italic text-sm text-slate-400 font-medium">
-                                                <span className="absolute -top-3 left-4 px-2 bg-[#0a0a0a] text-[9px] font-black uppercase tracking-[0.2em] text-slate-600">Employee Note</span>
-                                                "{req[req.reqType.toLowerCase().replace(' ', '')].remarks}"
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const key = req.reqType === 'Check-In' ? 'checkIn' : req.reqType === 'Check-Out' ? 'checkOut' : req.reqType === 'Half Day' ? 'halfDay' : 'leave';
+                                            return req[key]?.remarks ? (
+                                                <div className="relative p-4 rounded-2xl bg-white/[0.02] border border-white/5 italic text-sm text-slate-400 font-medium">
+                                                    <span className="absolute -top-3 left-4 px-2 bg-[#0a0a0a] text-[9px] font-black uppercase tracking-[0.2em] text-slate-600">Employee Note</span>
+                                                    "{req[key].remarks}"
+                                                </div>
+                                            ) : null;
+                                        })()}
 
                                         <div className="grid grid-cols-2 gap-4 pt-2">
                                             <button 
-                                                onClick={() => handleAction(req._id, `approve_${req.reqType.toLowerCase().replace(' ', '')}`)}
+                                                onClick={() => handleAction(req._id, `approve_${req.reqType.toLowerCase().replace(/[\s-]/g, '')}`)}
                                                 className="bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-xl shadow-indigo-500/20 active:scale-95"
                                             >
                                                 Authorize
                                             </button>
                                             <button 
-                                                onClick={() => handleAction(req._id, `reject_${req.reqType.toLowerCase().replace(' ', '')}`)}
+                                                onClick={() => handleAction(req._id, `reject_${req.reqType.toLowerCase().replace(/[\s-]/g, '')}`)}
                                                 className="bg-white/5 hover:bg-rose-500/20 text-slate-500 hover:text-rose-500 border border-white/5 rounded-2xl p-4 font-black text-xs uppercase tracking-widest transition-all duration-500 active:scale-95"
                                             >
                                                 Decline

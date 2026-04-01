@@ -203,13 +203,13 @@ router.put('/:id/action', auth, async (req, res) => {
 
         const { action, remarks } = req.body;
 
-        if (action === 'approve_checkin') {
+        if (action === 'approve_checkin' || action === 'approve_check-in') {
             attendance.checkIn.status = 'Approved';
             attendance.status = 'Present';
-        } else if (action === 'reject_checkin') {
+        } else if (action === 'reject_checkin' || action === 'reject_check-in') {
             attendance.checkIn.status = 'Rejected';
             attendance.status = 'Rejected';
-        } else if (action === 'approve_checkout') {
+        } else if (action === 'approve_checkout' || action === 'approve_check-out') {
             attendance.checkOut.status = 'Approved';
 
             if (attendance.checkIn.time && attendance.checkOut.time) {
@@ -236,7 +236,7 @@ router.put('/:id/action', auth, async (req, res) => {
             if (attendance.overtimeRequest && attendance.overtimeRequest.isRequested && attendance.overtimeRequest.status === 'Pending') {
                 attendance.overtimeRequest.status = 'Approved';
             }
-        } else if (action === 'reject_checkout') {
+        } else if (action === 'reject_checkout' || action === 'reject_check-out') {
             attendance.checkOut.status = 'Rejected';
             attendance.status = 'Present';
 
