@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { BASE_URL } from '../../api/axios';
 import { 
     Calendar, Search, MapPin, Clock, UserCheck, CheckCircle, 
     XCircle, AlertCircle, Edit, Briefcase, Sun, Umbrella, 
@@ -183,6 +183,7 @@ const AdminAttendance = () => {
             'Present': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5',
             'Absent': 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-rose-500/5',
             'Half Day': 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-amber-500/5',
+            'Full Day': 'bg-green-500/10 text-green-400 border-green-500/20 shadow-green-500/5',
             'On Leave': 'bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-purple-500/5',
             'Checked-Out': 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-blue-500/5',
             'Over Work': 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20 shadow-fuchsia-500/5',
@@ -267,8 +268,18 @@ const AdminAttendance = () => {
                                     <div className="p-8 space-y-6">
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-2xl font-black text-white shadow-2xl group-hover:scale-110 transition-transform duration-500">
-                                                    {req.employee?.fullName?.charAt(0)}
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px] group-hover:rotate-6 transition-transform duration-500 overflow-hidden shadow-2xl shadow-indigo-500/20 flex-shrink-0">
+                                                    {req.employee?.profilePicture ? (
+                                                        <img
+                                                            src={req.employee.profilePicture.startsWith('http') ? req.employee.profilePicture : `${BASE_URL}${req.employee.profilePicture.startsWith('/') ? '' : '/'}${req.employee.profilePicture}`}
+                                                            alt={req.employee.fullName}
+                                                            className="w-full h-full object-cover rounded-[1.2rem]"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-slate-900 rounded-[1.2rem] flex items-center justify-center text-xl font-black text-white italic">
+                                                            {req.employee?.fullName?.charAt(0)}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <h3 className="font-black text-white text-lg tracking-tight group-hover:text-indigo-400 transition-colors">{req.employee?.fullName}</h3>
@@ -418,8 +429,18 @@ const AdminAttendance = () => {
                                                 <tr key={record._id} className="hover:bg-white/[0.03] transition-all group backdrop-blur-sm">
                                                     <td className="p-8">
                                                         <div className="flex items-center gap-5">
-                                                            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center font-black text-white shadow-inner border border-white/10 group-hover:border-indigo-500/50 transition-all duration-500">
-                                                                {record.employee?.fullName?.charAt(0)}
+                                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px] rounded-2xl flex-shrink-0 group-hover:rotate-6 transition-all duration-500 overflow-hidden shadow-xl shadow-indigo-500/10">
+                                                                {record.employee?.profilePicture ? (
+                                                                    <img
+                                                                        src={record.employee.profilePicture.startsWith('http') ? record.employee.profilePicture : `${BASE_URL}${record.employee.profilePicture.startsWith('/') ? '' : '/'}${record.employee.profilePicture}`}
+                                                                        alt={record.employee.fullName}
+                                                                        className="w-full h-full object-cover rounded-[1.1rem]"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-slate-900 rounded-[1.1rem] flex items-center justify-center text-sm font-black text-white italic">
+                                                                        {record.employee?.fullName?.charAt(0)}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                             <div>
                                                                 <div className="text-white text-sm font-black tracking-tight">{record.employee?.fullName || 'Ghost Protocol'}</div>
@@ -635,8 +656,18 @@ const AdminAttendance = () => {
                         </div>
                         <form onSubmit={handleEditSubmit} className="p-12 space-y-10 font-bold">
                             <div className="bg-black/40 p-6 rounded-3xl border border-white/5 flex items-center gap-6 shadow-inner">
-                                <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center font-black text-white text-2xl border border-white/10">
-                                    {editingRecord.employee?.fullName?.charAt(0)}
+                                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px] rounded-2xl flex-shrink-0 overflow-hidden shadow-2xl shadow-indigo-500/20">
+                                    {editingRecord.employee?.profilePicture ? (
+                                        <img
+                                            src={editingRecord.employee.profilePicture.startsWith('http') ? editingRecord.employee.profilePicture : `${BASE_URL}${editingRecord.employee.profilePicture.startsWith('/') ? '' : '/'}${editingRecord.employee.profilePicture}`}
+                                            alt={editingRecord.employee.fullName}
+                                            className="w-full h-full object-cover rounded-[1.4rem]"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-slate-900 rounded-[1.4rem] flex items-center justify-center text-2xl font-black text-white italic border border-white/10">
+                                            {editingRecord.employee?.fullName?.charAt(0)}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <div className="text-white text-xl font-black italic tracking-wide uppercase">{editingRecord.employee?.fullName}</div>
@@ -650,6 +681,7 @@ const AdminAttendance = () => {
                                     <option value="Present">PRESENT / ACTIVE</option>
                                     <option value="Absent">ABSENT / NULL</option>
                                     <option value="Half Day">HALF CYCLE / DAY</option>
+                                    <option value="Full Day">FULL DAY / COMPLETE</option>
                                     <option value="On Leave">ON LEAVE / AWAY</option>
                                     <option value="Checked-Out">CHECKED-OUT</option>
                                     <option value="Over Work">EFFICIENCY+ / OVERWORK</option>

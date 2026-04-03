@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { BASE_URL } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { User, DollarSign, MapPin, Briefcase, Camera, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const EmployeeProfileModal = ({ isOpen, onClose }) => {
-    const { user, login } = useAuth(); // login is used to update context user data if needed, or we might need a dedicated update function
+    const { user, updateUser } = useAuth();
     const [formData, setFormData] = useState({
         fullName: '',
         designation: '',
@@ -29,7 +29,7 @@ const EmployeeProfileModal = ({ isOpen, onClose }) => {
                 phone: user.phone || '',
                 profilePicture: user.profilePicture || ''
             });
-            setPreviewUrl(user.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`) : '');
+            setPreviewUrl(user.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : `${BASE_URL}${user.profilePicture.startsWith('/') ? '' : '/'}${user.profilePicture}`) : '');
             setFile(null);
         }
     }, [isOpen, user]);
@@ -56,20 +56,20 @@ const EmployeeProfileModal = ({ isOpen, onClose }) => {
             if (file) {
                 data.append('profilePicture', file);
             } else {
-                // If no new file, we don't strictly need to send profilePicture string if we are using the file upload middleware primarily.
-                // But our backend logic handles "req.body.profilePicture" if no file.
                 data.append('profilePicture', formData.profilePicture);
             }
 
-            const res = await api.put('/api/users/profile', data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            await api.put('/api/users/profile', data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
+
+            // ✅ Instantly refresh user data across the ENTIRE app
+            // This updates: header avatar, dashboard hero, attendance page, admin views
+            await updateUser();
 
             alert('Profile Updated Successfully!');
             onClose();
-            window.location.reload();
+            // No page reload needed — React state handles everything
         } catch (err) {
             console.error(err);
             alert('Error updating profile');

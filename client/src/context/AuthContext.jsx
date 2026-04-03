@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import api from '../api/axios';
 
 const AuthContext = createContext();
@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+    // Load user from token on mount
     useEffect(() => {
         const loadUser = async () => {
             const token = localStorage.getItem('token');
@@ -19,7 +20,6 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                // Header is handled by interceptor in ../api/axios.js
                 const res = await api.get('/api/auth');
                 setUser(res.data);
                 setIsAuthenticated(true);
@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await api.post('/api/auth/login', { username, password });
             localStorage.setItem('token', res.data.token);
-            // Interceptor handles header updates on next request
             setUser(res.data.user);
             setIsAuthenticated(true);
             return { success: true };
@@ -57,8 +56,34 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
     };
 
+    /**
+     * updateUser — Re-fetches fresh user data from /api/auth 
+     * and updates the context immediately. Call this after profile
+     * changes (picture, name, etc.) so ALL components get the 
+     * new data instantly without a page reload.
+     * 
+     * Optionally accepts partial user data to merge immediately
+     * for an optimistic update before the server response arrives.
+     */
+    const updateUser = useCallback(async (partialData = null) => {
+        // Optimistic update: merge partial data immediately
+        if (partialData) {
+            setUser(prev => prev ? { ...prev, ...partialData } : prev);
+        }
+
+        // Then fetch the canonical data from the server
+        try {
+            const res = await api.get('/api/auth');
+            setUser(res.data);
+            return res.data;
+        } catch (err) {
+            console.error('Failed to refresh user data:', err);
+            return null;
+        }
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, loading, isAuthenticated, login, logout }}>
+        <AuthContext.Provider value={{ user, setUser, loading, isAuthenticated, login, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

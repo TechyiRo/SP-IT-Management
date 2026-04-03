@@ -216,17 +216,17 @@ router.put('/:id/action', auth, async (req, res) => {
                 const diff = Math.abs(new Date(attendance.checkOut.time) - new Date(attendance.checkIn.time));
                 attendance.duration = Math.floor((diff / 1000) / 60);
 
-                // ≤ 4 hours (240 min) → Half Day
-                if (attendance.duration <= 240) {
+                // ≤ 5 hours (300 min) → Half Day
+                if (attendance.duration <= 300) {
                     attendance.status = 'Half Day';
                 }
-                // > 8 hours (480 min) → Over Work
+                // > 8 hours (480 min) → Over Work (Overtime)
                 else if (attendance.duration > 480) {
                     attendance.status = 'Over Work';
                 }
-                // 4–8 hours → Normal day
+                // 5–8 hours → Full Day (Normal shift)
                 else {
-                    attendance.status = 'Checked-Out';
+                    attendance.status = 'Full Day';
                 }
             } else {
                 attendance.status = 'Checked-Out';

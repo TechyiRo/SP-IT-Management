@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { BASE_URL } from '../../api/axios';
 import { 
     Plus, Search, Edit2, Trash2, UserPlus, 
     Shield, Eye, EyeOff, Check, X, Filter,
@@ -238,7 +238,7 @@ const Users = () => {
                                     <div className="relative w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px] group-hover:rotate-6 transition-transform duration-500 overflow-hidden shadow-2xl shadow-indigo-500/20">
                                         {user.profilePicture ? (
                                             <img
-                                                src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`}
+                                                src={user.profilePicture.startsWith('http') ? user.profilePicture : `${BASE_URL}${user.profilePicture.startsWith('/') ? '' : '/'}${user.profilePicture}`}
                                                 alt={user.fullName}
                                                 className="w-full h-full object-cover rounded-[1.4rem]"
                                             />

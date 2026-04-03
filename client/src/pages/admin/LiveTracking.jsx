@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { BASE_URL } from '../../api/axios';
 import { MapPin, Clock, Search, RefreshCw, User } from 'lucide-react';
 
 const LiveTracking = () => {
@@ -78,7 +78,7 @@ const LiveTracking = () => {
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center border border-white/10 overflow-hidden">
                                         {user.profilePicture ? (
-                                            <img src={user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`} alt={user.fullName} className="w-full h-full object-cover" />
+                                            <img src={user.profilePicture.startsWith('http') ? user.profilePicture : `${BASE_URL}${user.profilePicture.startsWith('/') ? '' : '/'}${user.profilePicture}`} alt={user.fullName} className="w-full h-full object-cover" />
                                         ) : (
                                             <User className="text-gray-400" />
                                         )}
